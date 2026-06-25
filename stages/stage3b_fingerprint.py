@@ -7,7 +7,16 @@ from normalizer.schema import NormalizedFinding, Severity
 from normalizer.dedup import make_hash
 
 
-def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None, scope=None):
+def run(
+    target,
+    scan_id,
+    session,
+    jm,
+    fast=False,
+    out_dir=None,
+    auth=None,
+    scope=None,
+):
     return asyncio.run(_run_async(target, scan_id, session, jm, fast, out_dir, auth))
 
 
@@ -89,7 +98,7 @@ async def _playwright_fingerprint(url, host, scan_id, jm, out_dir, auth):
 
             # Forms discovery
             forms = await page.query_selector_all("form")
-            inputs = await page.query_selector_all("input[type!=hidden]")
+            inputs = await page.query_selector_all("input:not([type='hidden'])")
 
             findings.extend(secrets_found)
 

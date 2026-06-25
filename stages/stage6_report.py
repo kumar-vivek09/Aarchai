@@ -8,7 +8,16 @@ MAX_TOKENS_PER_CALL = 6000   # conservative for free-tier / small models
 TOKENS_PER_FINDING  = 120    # avg tokens for one full finding object
 
 
-def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None):
+def run(
+    target,
+    scan_id,
+    session,
+    jm,
+    fast=False,
+    out_dir=None,
+    auth=None,
+    scope=None,
+):
     from core.db import Finding
     jm.log_stage("stage6_report", f"LLM provider: {LLM_PROVIDER}")
 
@@ -169,9 +178,7 @@ def _dispatch(prompt: str, jm) -> str:
 
 def _stub(prompt: str, jm) -> str:
     jm.log_info("LLM stub — set LLM_PROVIDER=ollama or openai in .env")
-    return "[LLM stub — configure LLM_PROVIDER in .env to get AI narratives]
-
-" + prompt[:500]
+    return "[LLM stub — configure LLM_PROVIDER in .env to get AI narratives]" + prompt[:500]
 
 
 def _ollama(prompt: str, jm) -> str:

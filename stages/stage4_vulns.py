@@ -9,7 +9,16 @@ from stages.base import run_tool, tool_available
 import os
 
 
-def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None):
+def run(
+    target,
+    scan_id,
+    session,
+    jm,
+    fast=False,
+    out_dir=None,
+    auth=None,
+    scope=None,
+):
     findings = []
     host = target.host
 
@@ -80,8 +89,7 @@ def _run_nuclei(urls, host, scan_id, jm, fast, auth=None):
     # Write targets to temp file (better than stdin for large lists)
     import tempfile
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as tf:
-        tf.write("
-".join(urls))
+        tf.write("".join(urls))
         targets_file = tf.name
 
     cmd = [

@@ -8,7 +8,16 @@ from normalizer.dedup import make_hash
 from stages.base import run_tool, tool_available
 
 
-def run(target, scan_id, session, jm, fast=False, out_dir=None):
+def run(
+    target,
+    scan_id,
+    session,
+    jm,
+    fast=False,
+    out_dir=None,
+    auth=None,
+    scope=None,
+):
     findings = []
     assets   = []
     host     = target.host
