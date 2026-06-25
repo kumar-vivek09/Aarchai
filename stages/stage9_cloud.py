@@ -60,12 +60,9 @@ async def _metadata_endpoint(host, scan_id, jm):
                                 title=f"Cloud Metadata Accessible: {provider} ({url})",
                                 severity=Severity.critical,
                                 host=host, url=url,
-                                description=f"{provider} metadata endpoint is accessible from the scan host.
-"
+                                description=f"{provider} metadata endpoint is accessible from the scan host."
                                             f"This is a SSRF target. If accessible from the target app, "
-                                            f"attackers can steal IAM credentials.
-Preview:
-{body[:500]}",
+                                            f"attackers can steal IAM credentials.Preview:{body[:500]}",
                                 remediation=f"Block access to {url} via firewall/iptables unless explicitly needed. "
                                             f"Enable IMDSv2 on AWS instances.",
                                 raw_output=body[:2000],
@@ -114,13 +111,9 @@ async def _s3_enum(company, host, scan_id, jm):
                                     title=f"S3 Bucket: s3://{bucket} ({'PUBLIC READ' if accessible else 'exists, private'})",
                                     severity=sev,
                                     host=host, url=url,
-                                    description=f"S3 bucket found: {bucket}
-Region: {region}
-"
-                                                f"Status: {'Publicly accessible — anyone can list/download files' if accessible else 'Bucket exists but access restricted'}
-"
-                                                + (f"Content preview:
-{body[:500]}" if accessible else ""),
+                                    description=f"S3 bucket found: {bucket}Region: {region}"
+                                                f"Status: {'Publicly accessible — anyone can list/download files' if accessible else 'Bucket exists but access restricted'}"
+                                                + (f"Content preview:{body[:500]}" if accessible else ""),
                                     remediation="Make S3 buckets private. Use IAM policies and bucket policies to restrict access. Enable S3 Block Public Access.",
                                     raw_output=body[:1000] if accessible else "",
                                     fingerprint_hash=make_hash("s3", bucket, region),
@@ -159,8 +152,7 @@ async def _azure_enum(company, host, scan_id, jm):
                                 title=f"Azure Blob Storage PUBLICLY ACCESSIBLE: {account}",
                                 severity=Severity.critical,
                                 host=host, url=url,
-                                description=f"Azure Blob account {account} is publicly accessible.
-{body[:500]}",
+                                description=f"Azure Blob account {account} is publicly accessible.{body[:500]}",
                                 remediation="Disable public access on Azure Storage accounts. Use Shared Access Signatures for controlled access.",
                                 raw_output=body[:2000],
                                 fingerprint_hash=make_hash("azure_blob", account),
@@ -196,8 +188,7 @@ async def _gcp_enum(company, host, scan_id, jm):
                                 title=f"GCP Bucket PUBLIC: gs://{bucket}",
                                 severity=Severity.critical,
                                 host=host, url=url,
-                                description=f"GCP Storage bucket {bucket} is publicly accessible.
-{body[:500]}",
+                                description=f"GCP Storage bucket {bucket} is publicly accessible.{body[:500]}",
                                 remediation="Remove 'allUsers' from bucket IAM policy. Enable Uniform Bucket-Level Access.",
                                 raw_output=body[:2000],
                                 fingerprint_hash=make_hash("gcp_bucket", bucket),

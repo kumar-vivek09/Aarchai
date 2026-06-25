@@ -87,9 +87,7 @@ def _enrich_nvd(finding, cve_id: str, jm):
             break
     for desc in cve_data.get("descriptions", []):
         if desc.get("lang") == "en":
-            finding.description = (finding.description or "") + f"
-
-[NVD] {desc['value']}"
+            finding.description = (finding.description or "") + f"[NVD] {desc['value']}"
             break
 
 

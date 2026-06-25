@@ -90,10 +90,8 @@ async def _swagger_discover(host, base_url, scan_id, jm, auth):
                                     title=f"API Specification Exposed: {path} (~{endpoint_count} endpoints)",
                                     severity=Severity.medium,
                                     host=host, url=url,
-                                    description=f"OpenAPI/Swagger specification found at {url}.
-"
-                                                f"Approximately {endpoint_count} API endpoints documented.
-"
+                                    description=f"OpenAPI/Swagger specification found at {url}."
+                                                f"Approximately {endpoint_count} API endpoints documented."
                                                 f"This gives attackers a complete map of your API surface.",
                                     remediation="Restrict access to API documentation to authenticated users only. "
                                                 "Never expose internal API specs publicly.",
@@ -142,8 +140,7 @@ async def _graphql_test(host, base_url, scan_id, jm, auth):
                                     title=f"GraphQL Introspection Enabled: {path}",
                                     severity=Severity.medium,
                                     host=host, url=url,
-                                    description="GraphQL introspection is enabled, exposing the full schema.
-"
+                                    description="GraphQL introspection is enabled, exposing the full schema."
                                                 "Attackers can map all types, queries, mutations, and fields.",
                                     remediation="Disable introspection in production. Use query allowlisting.",
                                     raw_output=body[:1000],
