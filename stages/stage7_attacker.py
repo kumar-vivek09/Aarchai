@@ -130,17 +130,11 @@ Do NOT be generic. Every recommendation must be grounded in the actual findings 
 
 def _stub(payload: dict) -> str:
     return (
-        "== ATTACKER PERSPECTIVE (stub — configure LLM_PROVIDER in .env) ==
-
-"
-        f"Attack surface: {payload['attack_surface']}
-"
-        f"Initial access vectors: {len(payload['initial_access_vectors'])}
-"
-        f"Confirmed exploitable: {len(payload['confirmed_exploitable'])}
-"
-        "
-[Set LLM_PROVIDER=ollama and run Ollama locally for AI red team analysis]"
+        "== ATTACKER PERSPECTIVE (stub — configure LLM_PROVIDER in .env) ==\n\n"
+        f"Attack surface: {payload['attack_surface']}\n"
+        f"Initial access vectors: {len(payload['initial_access_vectors'])}\n"
+        f"Confirmed exploitable: {len(payload['confirmed_exploitable'])}\n\n"
+        "[Set LLM_PROVIDER=ollama and run Ollama locally for AI red team analysis]"
     )
 
 
