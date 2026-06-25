@@ -79,8 +79,8 @@ def run_pipeline(target, scan_id, session, jm, stages_arg, output_dir,
     console.print(Rule(f"[bold]Aarchai Scan #{scan_id}[/]", style="cyan"))
     console.print(f"Target: [cyan]{target.value}[/] ({target.type})")
     console.print(f"Stages: {', '.join(STAGE_LABELS.get(s, s) for s in stages)}")
-    console.print(f"Output: {out_path}
-")
+    console.print(f"Output: {out_path}")
+
 
     all_findings, all_assets = [], []
 
