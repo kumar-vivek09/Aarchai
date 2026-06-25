@@ -93,10 +93,7 @@ async def _check_path(sess, host, path, scan_id):
                         title=f"Exposed file: {path}",
                         severity=sev,
                         host=host, url=url,
-                        description=f"HTTP {resp.status} at {url}
-
-Content preview:
-{body[:500]}",
+                        description=f"HTTP {resp.status} at {url}Content preview:{body[:500]}",
                         remediation=f"Block access to {path} via web server config. Restrict file permissions.",
                         raw_output=body[:2000],
                         fingerprint_hash=make_hash("exposed_file", host, path),
@@ -159,10 +156,10 @@ async def _run_gitleaks(host, scan_id, jm, auth=None):
                     title=f"Secret in Git: {leak.get('Description','secret')} in {leak.get('File','')}",
                     severity=Severity.critical,
                     host=host,
-                    description=f"Rule: {leak.get('RuleID','')}
-File: {leak.get('File','')}
-Line: {leak.get('StartLine','')}
-Match: {str(leak.get('Match',''))[:200]}",
+                    description=f"Rule: {leak.get('RuleID','')}\n" +
+                                f"File: {leak.get('File','')}\n" +
+                                f"Line: {leak.get('StartLine','')}\n" +
+                                f"Match: {str(leak.get('Match',''))[:200]}",
                     remediation="Remove the secret from git history using git-filter-repo. Rotate the exposed credentials immediately.",
                     raw_output=str(leak)[:2000],
                     fingerprint_hash=make_hash("gitleaks", host, leak.get("File",""), leak.get("RuleID","")),
@@ -196,8 +193,7 @@ async def _run_jsfinder(host, scan_id, jm, auth=None):
                     title=f"Potential secret in JS: {line[:80]}",
                     severity=Severity.high,
                     host=host,
-                    description=f"jsfinder found potential secret in JavaScript:
-{line[:500]}",
+                    description=f"jsfinder found potential secret in JavaScript:{line[:500]}",
                     remediation="Move secrets to environment variables. Never include API keys in client-side code.",
                     raw_output=line[:1000],
                     fingerprint_hash=make_hash("jsfinder", host, line[:60]),
