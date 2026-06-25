@@ -100,9 +100,9 @@ async def _playwright_fingerprint(url, host, scan_id, jm, out_dir, auth):
                     title=f"JS Framework: {', '.join(tech)}",
                     severity=Severity.info,
                     host=host, url=url,
-                    description=f"Title: {title}
-Frameworks: {', '.join(tech)}
-Forms: {len(forms)}, Inputs: {len(inputs)}",
+                    description=f"Title: {title}\n" +
+                                f"Frameworks: {', '.join(tech)}\n" +
+                                f"Forms: {len(forms)}, Inputs: {len(inputs)}",
                     raw_output=f"tech={tech}",
                     fingerprint_hash=make_hash("playwright_tech", host, url),
                 ))
@@ -165,7 +165,7 @@ def _scan_for_secrets_in_js(content: str, url: str, host: str, scan_id: int) -> 
     findings = []
     patterns = {
         "AWS Access Key":    r"AKIA[0-9A-Z]{16}",
-        "AWS Secret Key":    r"['"]([A-Za-z0-9/+]{40})['"]",
+        "AWS Secret Key": r'["\']([A-Za-z0-9/+=]{40})["\']',
         "Google API Key":    r"AIza[0-9A-Za-z\-_]{35}",
         "Stripe Key":        r"sk_(live|test)_[0-9a-zA-Z]{24}",
         "GitHub Token":      r"ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82}",

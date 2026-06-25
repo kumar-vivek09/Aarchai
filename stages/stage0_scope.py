@@ -15,10 +15,9 @@ def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None, scope
 
     if not scope.is_in_scope(target.host):
         raise ValueError(
-            f"Target {target.host} is OUT OF SCOPE!
-"
-            f"Includes: {scope.includes}
-Excludes: {scope.excludes}"
+            f"Target {target.host} is OUT OF SCOPE!\n"
+            f"Includes: {scope.includes}\n"
+            f"Excludes: {scope.excludes}"
         )
 
     print_scope(scope, console)
