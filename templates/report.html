@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Aarchai Report — {{ target }}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#0a0c10;color:#e2e8f0;font-size:13px;line-height:1.6}
+  a{color:#3b82f6}
+  .page{max-width:900px;margin:0 auto;padding:40px 48px}
+
+  /* Cover */
+  .cover{text-align:center;padding:80px 0 60px;border-bottom:1px solid #1e2535;margin-bottom:40px}
+  .cover-badge{display:inline-block;background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.3);
+    color:#14b8a6;border-radius:20px;padding:3px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;
+    letter-spacing:.06em;margin-bottom:20px}
+  .cover h1{font-size:32px;font-weight:700;letter-spacing:-.02em;
+    background:linear-gradient(135deg,#e2e8f0,#a78bfa,#3b82f6);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+  .cover .target-chip{font-family:'JetBrains Mono',monospace;font-size:14px;color:#06b6d4;
+    background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:8px;
+    padding:6px 16px;display:inline-block;margin:12px 0}
+  .cover .meta{color:#7a8499;font-size:12px;margin-top:16px}
+
+  /* Stats bar */
+  .stats{display:flex;gap:0;border:1px solid #1e2535;border-radius:12px;overflow:hidden;margin-bottom:36px}
+  .stat{flex:1;text-align:center;padding:20px 12px;border-right:1px solid #1e2535;background:#13161e}
+  .stat:last-child{border-right:none}
+  .stat-num{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}
+  .stat-label{font-size:10px;color:#7a8499;text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+  .c-critical .stat-num{color:#ef4444}
+  .c-high     .stat-num{color:#f97316}
+  .c-medium   .stat-num{color:#f59e0b}
+  .c-low      .stat-num{color:#3b82f6}
+  .c-info     .stat-num{color:#7a8499}
+
+  /* Section headings */
+  h2{font-size:16px;font-weight:600;color:#e2e8f0;margin:36px 0 16px;
+     padding-bottom:8px;border-bottom:1px solid #1e2535;
+     display:flex;align-items:center;gap:8px}
+  h2::before{content:'';display:inline-block;width:3px;height:16px;
+    background:linear-gradient(to bottom,#a78bfa,#3b82f6);border-radius:2px}
+
+  /* Finding card */
+  .finding{background:#13161e;border:1px solid #1e2535;border-radius:10px;
+    padding:16px 18px;margin-bottom:10px;border-left:3px solid var(--sev-color)}
+  .finding.critical{--sev-color:#ef4444}
+  .finding.high    {--sev-color:#f97316}
+  .finding.medium  {--sev-color:#f59e0b}
+  .finding.low     {--sev-color:#3b82f6}
+  .finding.info    {--sev-color:#4b5563}
+  .finding-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .sev-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;
+    text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;flex-shrink:0;margin-top:2px}
+  .sev-badge.critical{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+  .sev-badge.high    {background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3)}
+  .sev-badge.medium  {background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+  .sev-badge.low     {background:rgba(59,130,246,.15); color:#3b82f6;border:1px solid rgba(59,130,246,.3)}
+  .sev-badge.info    {background:rgba(107,114,128,.15);color:#9ca3af;border:1px solid rgba(107,114,128,.3)}
+  .finding-title{font-size:13px;font-weight:600;color:#e2e8f0}
+  .finding-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:#7a8499;margin-bottom:6px}
+  .finding-desc{font-size:11.5px;color:#94a3b8;line-height:1.6}
+  .finding-remediation{margin-top:8px;padding:8px 12px;background:rgba(34,197,94,.05);
+    border:1px solid rgba(34,197,94,.15);border-radius:6px;font-size:11px;color:#86efac}
+  .finding-remediation::before{content:'Remediation: ';font-weight:600}
+  .cve-tag{font-family:'JetBrains Mono',monospace;font-size:9px;
+    background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);
+    border-radius:4px;padding:1px 6px;margin-right:4px}
+
+  /* Assets table */
+  table{width:100%;border-collapse:collapse;margin-bottom:20px}
+  th{background:#13161e;padding:8px 12px;text-align:left;font-size:10px;
+     color:#7a8499;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #1e2535}
+  td{padding:8px 12px;font-size:11.5px;border-bottom:1px solid #1e2535;color:#cbd5e1;
+     font-family:'JetBrains Mono',monospace}
+  tr:last-child td{border-bottom:none}
+
+  /* AI narrative box */
+  .narrative{background:#0f1117;border:1px solid rgba(167,139,250,.2);border-radius:10px;
+    padding:20px 24px;margin-bottom:24px;position:relative}
+  .narrative::before{content:'AI NARRATIVE';position:absolute;top:-9px;left:16px;
+    background:#0f1117;color:#a78bfa;font-size:9px;font-weight:600;
+    letter-spacing:.12em;padding:0 8px;border:1px solid rgba(167,139,250,.2);border-radius:4px}
+  .narrative p{color:#94a3b8;font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+
+  /* Footer */
+  .footer{text-align:center;padding:32px 0 0;border-top:1px solid #1e2535;
+    color:#3d4661;font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:40px}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-badge">&#x25cf; Aarchai Recon Report</div>
+    <h1>Security Assessment Report</h1>
+    <div class="target-chip">{{ target }} ({{ target_type }})</div>
+    <div class="meta">Scan #{{ scan_id }} &bull; Generated by Aarchai on Kali Linux</div>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats">
+    <div class="stat c-critical">
+      <div class="stat-num">{{ sev_counts.critical }}</div>
+      <div class="stat-label">Critical</div>
+    </div>
+    <div class="stat c-high">
+      <div class="stat-num">{{ sev_counts.high }}</div>
+      <div class="stat-label">High</div>
+    </div>
+    <div class="stat c-medium">
+      <div class="stat-num">{{ sev_counts.medium }}</div>
+      <div class="stat-label">Medium</div>
+    </div>
+    <div class="stat c-low">
+      <div class="stat-num">{{ sev_counts.low }}</div>
+      <div class="stat-label">Low</div>
+    </div>
+    <div class="stat c-info">
+      <div class="stat-num">{{ sev_counts.info }}</div>
+      <div class="stat-label">Info</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" style="color:#14b8a6">{{ total_assets }}</div>
+      <div class="stat-label">Assets</div>
+    </div>
+  </div>
+
+  {% set ai_file = "ai_narrative.txt" %}
+
+  <!-- Findings -->
+  <h2>Findings</h2>
+  {% for f in findings %}
+  <div class="finding {{ f.severity }}">
+    <div class="finding-head">
+      <span class="sev-badge {{ f.severity }}">{{ f.severity }}</span>
+      <div class="finding-title">{{ f.title }}</div>
+    </div>
+    <div class="finding-meta">
+      {{ f.tool }}
+      {% if f.host %} &bull; {{ f.host }}{% endif %}
+      {% if f.port %} :{{ f.port }}{% endif %}
+      {% if f.url  %} &bull; {{ f.url }}{% endif %}
+      {% if f.cvss_score %} &bull; CVSS {{ f.cvss_score }}{% endif %}
+    </div>
+    {% if f.cve_ids %}
+    <div style="margin-bottom:6px">
+      {% for cve in f.cve_ids %}<span class="cve-tag">{{ cve }}</span>{% endfor %}
+    </div>
+    {% endif %}
+    {% if f.description %}
+    <div class="finding-desc">{{ f.description[:600] }}</div>
+    {% endif %}
+    {% if f.remediation %}
+    <div class="finding-remediation">{{ f.remediation }}</div>
+    {% endif %}
+  </div>
+  {% else %}
+  <p style="color:#7a8499">No findings recorded.</p>
+  {% endfor %}
+
+  <!-- Assets -->
+  {% if assets %}
+  <h2>Discovered Assets</h2>
+  <table>
+    <thead>
+      <tr><th>Type</th><th>Value</th><th>Port</th><th>Service</th><th>Source</th></tr>
+    </thead>
+    <tbody>
+    {% for a in assets[:100] %}
+    <tr>
+      <td>{{ a.get("type","") }}</td>
+      <td>{{ a.get("value","") }}</td>
+      <td>{{ a.get("port","") or "" }}</td>
+      <td>{{ a.get("service","") or "" }}</td>
+      <td>{{ a.get("source_tool","") }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <div class="footer">
+    Aarchai &bull; Automated Recon Framework &bull; Kali Linux &bull; Scan #{{ scan_id }}
+  </div>
+</div>
+</body>
+</html>

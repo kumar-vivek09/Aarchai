@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+venv/
+env/
+ENV/
+.venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Reports / scan output (don't commit scan results)
+reports/
+/tmp/
+
+# Playwright browsers
+.playwright/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Auth profiles (contain secrets)
+auth_profiles/*.json
+!auth_profiles/example.json
+
+# Alembic generated versions (keep template, not generated)
+# alembic/versions/*.py  # uncomment if you don't want to commit migrations
+
+# Screenshots from scans
+screenshots/
+*.png
+*.jpg
+*.jpeg
+
+# Temp files
+/tmp/
+*.tmp
+*.bak
+*.backup
+
+# API output caches
+/tmp/cisa_kev.json

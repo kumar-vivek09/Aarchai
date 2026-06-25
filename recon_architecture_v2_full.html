@@ -1,0 +1,192 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,sans-serif);background:transparent;color:var(--color-text-primary)}
+.wrap{max-width:680px;margin:0 auto;padding:1rem 0}
+.sec-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:6px;padding-left:2px}
+.layer{border-radius:12px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);padding:10px 12px;margin-bottom:5px}
+.lh{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.lt{font-size:13px;font-weight:500}
+.ls{font-size:11px;color:var(--color-text-secondary)}
+.pills{display:flex;flex-wrap:wrap;gap:4px}
+.pill{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;border:0.5px solid}
+.arr{display:flex;align-items:center;justify-content:center;height:18px;color:var(--color-text-secondary);font-size:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px}
+.sub{border-radius:8px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);padding:8px 10px}
+.sub .lt{font-size:12px}
+.sub .ls{font-size:10px}
+.badge{font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;border:0.5px solid;margin-left:6px}
+
+/* colour themes */
+.blue .ico{background:#e6f1fb;color:#185fa5} .blue .pill{background:#e6f1fb;color:#0c447c;border-color:#b5d4f4}
+.purple .ico{background:#eeedfe;color:#534ab7} .purple .pill{background:#eeedfe;color:#3c3489;border-color:#afa9ec}
+.teal .ico{background:#e1f5ee;color:#0f6e56} .teal .pill{background:#e1f5ee;color:#085041;border-color:#5dcaa5}
+.amber .ico{background:#faeeda;color:#854f0b} .amber .pill{background:#faeeda;color:#633806;border-color:#fac775}
+.coral .ico{background:#faece7;color:#993c1d} .coral .pill{background:#faece7;color:#712b13;border-color:#f0997b}
+.pink .ico{background:#fbeaf0;color:#993556} .pink .pill{background:#fbeaf0;color:#72243e;border-color:#ed93b1}
+.green .ico{background:#eaf3de;color:#3b6d11} .green .pill{background:#eaf3de;color:#27500a;border-color:#97c459}
+.gray .ico{background:#f1efe8;color:#5f5e5a} .gray .pill{background:#f1efe8;color:#444441;border-color:#b4b2a9}
+.red .ico{background:#fcebeb;color:#a32d2d} .red .pill{background:#fcebeb;color:#791f1f;border-color:#f09595}
+
+.blue.layer{border-color:#85b7eb} .purple.layer{border-color:#afa9ec} .teal.layer{border-color:#5dcaa5}
+.amber.layer{border-color:#fac775} .coral.layer{border-color:#f0997b} .pink.layer{border-color:#ed93b1}
+.green.layer{border-color:#97c459} .gray.layer{border-color:#b4b2a9} .red.layer{border-color:#f09595}
+
+.blue.sub{border-color:#b5d4f4} .purple.sub{border-color:#afa9ec} .teal.sub{border-color:#5dcaa5}
+.amber.sub{border-color:#fac775} .coral.sub{border-color:#f0997b} .pink.sub{border-color:#ed93b1}
+.green.sub{border-color:#97c459} .gray.sub{border-color:#b4b2a9} .red.sub{border-color:#f09595}
+
+.blue .badge{background:#e6f1fb;color:#0c447c;border-color:#b5d4f4}
+.green .badge{background:#eaf3de;color:#27500a;border-color:#97c459}
+.amber .badge{background:#faeeda;color:#633806;border-color:#fac775}
+.new-badge{background:#eaf3de;color:#27500a;border:0.5px solid #97c459;font-size:10px;font-weight:500;padding:1px 7px;border-radius:10px;margin-left:6px}
+.upd-badge{background:#e6f1fb;color:#0c447c;border:0.5px solid #b5d4f4;font-size:10px;font-weight:500;padding:1px 7px;border-radius:10px;margin-left:6px}
+
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:10px 0}
+
+@media(prefers-color-scheme:dark){
+  .blue .ico{background:#042c53;color:#85b7eb} .blue .pill{background:#042c53;color:#b5d4f4;border-color:#185fa5}
+  .purple .ico{background:#26215c;color:#afa9ec} .purple .pill{background:#26215c;color:#cecbf6;border-color:#534ab7}
+  .teal .ico{background:#04342c;color:#5dcaa5} .teal .pill{background:#04342c;color:#9fe1cb;border-color:#0f6e56}
+  .amber .ico{background:#412402;color:#ef9f27} .amber .pill{background:#412402;color:#fac775;border-color:#854f0b}
+  .coral .ico{background:#4a1b0c;color:#f0997b} .coral .pill{background:#4a1b0c;color:#f5c4b3;border-color:#993c1d}
+  .pink .ico{background:#4b1528;color:#ed93b1} .pink .pill{background:#4b1528;color:#f4c0d1;border-color:#993556}
+  .green .ico{background:#173404;color:#97c459} .green .pill{background:#173404;color:#c0dd97;border-color:#3b6d11}
+  .gray .ico{background:#2c2c2a;color:#b4b2a9} .gray .pill{background:#2c2c2a;color:#d3d1c7;border-color:#5f5e5a}
+  .red .ico{background:#501313;color:#f09595} .red .pill{background:#501313;color:#f7c1c1;border-color:#a32d2d}
+  .blue .badge{background:#042c53;color:#b5d4f4;border-color:#185fa5}
+  .green .badge{background:#173404;color:#c0dd97;border-color:#3b6d11}
+  .amber .badge{background:#412402;color:#fac775;border-color:#854f0b}
+  .new-badge{background:#173404;color:#c0dd97;border-color:#3b6d11}
+  .upd-badge{background:#042c53;color:#b5d4f4;border-color:#185fa5}
+}
+</style>
+
+<div class="wrap">
+
+<div class="sec-label">Input</div>
+<div class="layer blue">
+  <div class="lh"><div class="ico blue"><i class="ti ti-world" aria-hidden="true"></i></div>
+    <div><div class="lt">Target input</div><div class="ls">Domain · IP · CIDR · IP:PORT</div></div>
+  </div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">New — Infrastructure layer <span class="new-badge">new</span></div>
+<div class="grid3">
+  <div class="sub purple">
+    <div class="lh" style="margin-bottom:5px"><div class="ico purple" style="width:22px;height:22px;font-size:12px"><i class="ti ti-database" aria-hidden="true"></i></div><div class="lt">Asset DB</div></div>
+    <div class="ls">PostgreSQL · domains, IPs, ports, subdomains, history</div>
+  </div>
+  <div class="sub amber">
+    <div class="lh" style="margin-bottom:5px"><div class="ico amber" style="width:22px;height:22px;font-size:12px"><i class="ti ti-stack" aria-hidden="true"></i></div><div class="lt">Queue</div></div>
+    <div class="ls">Redis + Celery · async scan dispatch</div>
+  </div>
+  <div class="sub teal">
+    <div class="lh" style="margin-bottom:5px"><div class="ico teal" style="width:22px;height:22px;font-size:12px"><i class="ti ti-adjustments" aria-hidden="true"></i></div><div class="lt">Job manager</div></div>
+    <div class="ls">Pending · Running · Done · Failed · Cancelled</div>
+  </div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Stage 1 — Passive recon</div>
+<div class="layer purple">
+  <div class="lh"><div class="ico purple"><i class="ti ti-radar" aria-hidden="true"></i></div>
+    <div><div class="lt">Passive intelligence gathering</div><div class="ls">Silent — no direct target contact</div></div>
+  </div>
+  <div class="pills"><span class="pill purple">whois</span><span class="pill purple">theHarvester</span><span class="pill purple">recon-ng</span><span class="pill purple">Shodan CLI</span><span class="pill purple">amass (passive)</span><span class="pill purple">dnsx</span></div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Stage 2 — Active recon (parallel)</div>
+<div class="grid2">
+  <div class="sub teal">
+    <div class="lh" style="margin-bottom:5px"><div class="ico teal" style="width:22px;height:22px;font-size:12px"><i class="ti ti-sitemap" aria-hidden="true"></i></div><div class="lt">Subdomain &amp; DNS</div></div>
+    <div class="pills"><span class="pill teal">subfinder</span><span class="pill teal">amass</span><span class="pill teal">fierce</span><span class="pill teal">dnsrecon</span><span class="pill teal">gobuster DNS</span></div>
+  </div>
+  <div class="sub coral">
+    <div class="lh" style="margin-bottom:5px"><div class="ico coral" style="width:22px;height:22px;font-size:12px"><i class="ti ti-network" aria-hidden="true"></i></div><div class="lt">Port &amp; service scan</div></div>
+    <div class="pills"><span class="pill coral">nmap</span><span class="pill coral">masscan</span><span class="pill coral">rustscan</span><span class="pill coral">nmap scripts</span></div>
+  </div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Stage 3 — Web surface mapping</div>
+<div class="layer amber">
+  <div class="lh"><div class="ico amber"><i class="ti ti-spider" aria-hidden="true"></i></div>
+    <div><div class="lt">Crawling, dir enum, fingerprint</div></div>
+  </div>
+  <div class="pills"><span class="pill amber">nikto</span><span class="pill amber">dirb</span><span class="pill amber">ffuf</span><span class="pill amber">gobuster</span><span class="pill amber">whatweb</span><span class="pill amber">wafw00f</span><span class="pill amber">httpx</span><span class="pill amber">eyewitness</span></div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Stage 4 — Vulnerability detection (parallel)</div>
+<div class="grid2">
+  <div class="sub coral">
+    <div class="lh" style="margin-bottom:5px"><div class="ico coral" style="width:22px;height:22px;font-size:12px"><i class="ti ti-bug" aria-hidden="true"></i></div><div class="lt">Auto vuln scan</div></div>
+    <div class="pills"><span class="pill coral">nuclei</span><span class="pill coral">openvas</span><span class="pill coral">wpscan</span><span class="pill coral">sqlmap</span></div>
+  </div>
+  <div class="sub amber">
+    <div class="lh" style="margin-bottom:5px"><div class="ico amber" style="width:22px;height:22px;font-size:12px"><i class="ti ti-certificate" aria-hidden="true"></i></div><div class="lt">SSL / header audit</div></div>
+    <div class="pills"><span class="pill amber">sslscan</span><span class="pill amber">testssl.sh</span><span class="pill amber">sslyze</span><span class="pill amber">nmap ssl-*</span></div>
+  </div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">New — Result normalizer <span class="new-badge">new</span></div>
+<div class="layer teal">
+  <div class="lh"><div class="ico teal"><i class="ti ti-transform" aria-hidden="true"></i></div>
+    <div><div class="lt">Unified JSON schema converter</div><div class="ls">All tool outputs → one common format</div></div>
+  </div>
+  <div class="pills"><span class="pill teal">parser per tool</span><span class="pill teal">field mapping</span><span class="pill teal">dedup engine</span><span class="pill teal">severity normalise</span><span class="pill teal">schema validator</span></div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">New — Scan history &amp; diff engine <span class="new-badge">new</span></div>
+<div class="layer blue">
+  <div class="lh"><div class="ico blue"><i class="ti ti-history" aria-hidden="true"></i></div>
+    <div><div class="lt">Persistent scan storage + delta comparison</div><div class="ls">Every scan stored · old vs new diffing</div></div>
+  </div>
+  <div class="pills"><span class="pill blue">scan snapshots</span><span class="pill blue">new findings</span><span class="pill blue">resolved findings</span><span class="pill blue">asset changes</span><span class="pill blue">trend tracking</span></div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Stage 5 — Intelligence layer <span class="new-badge">AI-enhanced</span></div>
+<div class="layer pink">
+  <div class="lh"><div class="ico pink"><i class="ti ti-brain" aria-hidden="true"></i></div>
+    <div><div class="lt">Aggregation, correlation &amp; enrichment</div><div class="ls">CVE lookup · MITRE map · risk scoring</div></div>
+  </div>
+  <div class="pills"><span class="pill pink">CVE / NVD API</span><span class="pill pink">MITRE ATT&CK</span><span class="pill pink">risk scorer</span><span class="pill pink">threat intel feed</span><span class="pill pink">OSINT enrichment</span></div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Stage 6 — AI report generation</div>
+<div class="layer green">
+  <div class="lh"><div class="ico green"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
+    <div><div class="lt">LLM narrative + plain-English report</div><div class="ls">Business impact · remediation · executive summary</div></div>
+  </div>
+  <div class="pills"><span class="pill green">severity ranking</span><span class="pill green">plain-English findings</span><span class="pill green">fix steps</span><span class="pill green">exec summary</span></div>
+</div>
+
+<div class="arr">↓</div>
+
+<div class="sec-label">Output</div>
+<div class="grid3">
+  <div class="sub blue"><div class="lt" style="margin-bottom:3px"><i class="ti ti-file-text" style="margin-right:4px;font-size:13px" aria-hidden="true"></i>PDF report</div><div class="ls">Executive + technical</div></div>
+  <div class="sub green"><div class="lt" style="margin-bottom:3px"><i class="ti ti-table" style="margin-right:4px;font-size:13px" aria-hidden="true"></i>JSON / CSV</div><div class="ls">Machine-readable</div></div>
+  <div class="sub amber"><div class="lt" style="margin-bottom:3px"><i class="ti ti-browser" style="margin-right:4px;font-size:13px" aria-hidden="true"></i>HTML dashboard</div><div class="ls">Interactive view</div></div>
+</div>
+
+</div>

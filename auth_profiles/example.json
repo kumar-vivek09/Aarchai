@@ -1,0 +1,7 @@
+{
+  "cookies":      "session=YOUR_SESSION_COOKIE; csrf=YOUR_CSRF_TOKEN",
+  "headers":      {"X-Custom-Header": "value"},
+  "bearer_token": null,
+  "basic_user":   null,
+  "basic_pass":   null
+}

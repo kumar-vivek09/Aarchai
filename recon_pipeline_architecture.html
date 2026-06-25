@@ -1,0 +1,398 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans, sans-serif); background: transparent; color: var(--color-text-primary); }
+
+.arch-container { width: 100%; overflow-x: auto; padding: 1rem 0; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.stage {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  background: var(--color-background-primary);
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.stage-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.stage-title { font-size: 14px; font-weight: 500; }
+.stage-sub { font-size: 12px; color: var(--color-text-secondary); }
+
+.tools-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.tool-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 0.5px solid;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.tool-pill:hover { opacity: 0.75; }
+
+/* Color themes */
+.s-input  { border-color: #5da8e0; }
+.s-input .stage-icon  { background: #e6f1fb; color: #185fa5; }
+.s-input .tool-pill   { background: #e6f1fb; color: #0c447c; border-color: #b5d4f4; }
+
+.s-recon  { border-color: #a89de8; }
+.s-recon .stage-icon  { background: #eeedfe; color: #534ab7; }
+.s-recon .tool-pill   { background: #eeedfe; color: #3c3489; border-color: #afa9ec; }
+
+.s-enum   { border-color: #5dcaa5; }
+.s-enum .stage-icon   { background: #e1f5ee; color: #0f6e56; }
+.s-enum .tool-pill    { background: #e1f5ee; color: #085041; border-color: #5dcaa5; }
+
+.s-vuln   { border-color: #f0997b; }
+.s-vuln .stage-icon   { background: #faece7; color: #993c1d; }
+.s-vuln .tool-pill    { background: #faece7; color: #712b13; border-color: #f0997b; }
+
+.s-web    { border-color: #ef9f27; }
+.s-web .stage-icon    { background: #faeeda; color: #854f0b; }
+.s-web .tool-pill     { background: #faeeda; color: #633806; border-color: #fac775; }
+
+.s-intel  { border-color: #d4537e; }
+.s-intel .stage-icon  { background: #fbeaf0; color: #993556; }
+.s-intel .tool-pill   { background: #fbeaf0; color: #72243e; border-color: #ed93b1; }
+
+.s-ai     { border-color: #63a029; }
+.s-ai .stage-icon     { background: #eaf3de; color: #3b6d11; }
+.s-ai .tool-pill      { background: #eaf3de; color: #27500a; border-color: #97c459; }
+
+.s-report { border-color: #888780; }
+.s-report .stage-icon { background: #f1efe8; color: #5f5e5a; }
+.s-report .tool-pill  { background: #f1efe8; color: #444441; border-color: #b4b2a9; }
+
+/* Arrow connector */
+.arrow-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  color: var(--color-text-secondary);
+  font-size: 18px;
+}
+
+/* Two column layout for certain stages */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.col-stage {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--color-background-primary);
+}
+
+/* Output report row */
+.report-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.report-card {
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pipeline-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.badge-new {
+  font-size: 10px;
+  background: #eaf3de;
+  color: #3b6d11;
+  border: 0.5px solid #97c459;
+  border-radius: 20px;
+  padding: 1px 7px;
+  font-weight: 500;
+}
+
+.flow-label {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .s-input .stage-icon  { background: #042c53; color: #85b7eb; }
+  .s-input .tool-pill   { background: #042c53; color: #b5d4f4; border-color: #185fa5; }
+  .s-recon .stage-icon  { background: #26215c; color: #afa9ec; }
+  .s-recon .tool-pill   { background: #26215c; color: #cecbf6; border-color: #534ab7; }
+  .s-enum .stage-icon   { background: #04342c; color: #5dcaa5; }
+  .s-enum .tool-pill    { background: #04342c; color: #9fe1cb; border-color: #0f6e56; }
+  .s-vuln .stage-icon   { background: #4a1b0c; color: #f0997b; }
+  .s-vuln .tool-pill    { background: #4a1b0c; color: #f5c4b3; border-color: #993c1d; }
+  .s-web .stage-icon    { background: #412402; color: #ef9f27; }
+  .s-web .tool-pill     { background: #412402; color: #fac775; border-color: #854f0b; }
+  .s-intel .stage-icon  { background: #4b1528; color: #ed93b1; }
+  .s-intel .tool-pill   { background: #4b1528; color: #f4c0d1; border-color: #993556; }
+  .s-ai .stage-icon     { background: #173404; color: #97c459; }
+  .s-ai .tool-pill      { background: #173404; color: #c0dd97; border-color: #3b6d11; }
+  .s-report .stage-icon { background: #2c2c2a; color: #b4b2a9; }
+  .s-report .tool-pill  { background: #2c2c2a; color: #d3d1c7; border-color: #5f5e5a; }
+  .badge-new { background: #173404; color: #97c459; border-color: #3b6d11; }
+}
+</style>
+</head>
+<body>
+<div class="pipeline-wrap">
+
+  <!-- INPUT -->
+  <div class="section-label">Input Layer</div>
+  <div class="stage s-input">
+    <div class="stage-header">
+      <div class="stage-icon"><i class="ti ti-world" aria-hidden="true"></i></div>
+      <div>
+        <div class="stage-title">Target Input</div>
+        <div class="stage-sub">Domain name or IP address entered by user</div>
+      </div>
+    </div>
+    <div class="tools-row">
+      <span class="tool-pill s-input">domain.com</span>
+      <span class="tool-pill s-input">192.168.x.x</span>
+      <span class="tool-pill s-input">CIDR range</span>
+      <span class="tool-pill s-input">IP:PORT</span>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+  <div class="flow-label">Input validation &amp; target normalisation</div>
+  <div class="arrow-connector" style="height:10px">↓</div>
+
+  <!-- STAGE 1 RECON -->
+  <div class="section-label">Stage 1 — Passive Recon</div>
+  <div class="stage s-recon">
+    <div class="stage-header">
+      <div class="stage-icon"><i class="ti ti-radar" aria-hidden="true"></i></div>
+      <div>
+        <div class="stage-title">Passive Intelligence Gathering</div>
+        <div class="stage-sub">No direct interaction with target — silent collection</div>
+      </div>
+    </div>
+    <div class="tools-row">
+      <span class="tool-pill s-recon">whois</span>
+      <span class="tool-pill s-recon">dig / nslookup</span>
+      <span class="tool-pill s-recon">theHarvester</span>
+      <span class="tool-pill s-recon">recon-ng</span>
+      <span class="tool-pill s-recon">Maltego CE</span>
+      <span class="tool-pill s-recon">Shodan CLI</span>
+      <span class="tool-pill s-recon">dnsx</span>
+      <span class="tool-pill s-recon">amass (passive)</span>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+
+  <!-- STAGE 2 two col -->
+  <div class="section-label">Stage 2 — Active Recon</div>
+  <div class="two-col">
+    <div class="col-stage s-enum">
+      <div class="stage-header">
+        <div class="stage-icon" style="width:26px;height:26px;font-size:13px"><i class="ti ti-sitemap" aria-hidden="true"></i></div>
+        <div>
+          <div class="stage-title" style="font-size:13px">Subdomain &amp; DNS Enum</div>
+        </div>
+      </div>
+      <div class="tools-row">
+        <span class="tool-pill s-enum">amass (active)</span>
+        <span class="tool-pill s-enum">subfinder</span>
+        <span class="tool-pill s-enum">dnsrecon</span>
+        <span class="tool-pill s-enum">fierce</span>
+        <span class="tool-pill s-enum">gobuster DNS</span>
+      </div>
+    </div>
+    <div class="col-stage s-vuln">
+      <div class="stage-header">
+        <div class="stage-icon" style="width:26px;height:26px;font-size:13px"><i class="ti ti-network" aria-hidden="true"></i></div>
+        <div>
+          <div class="stage-title" style="font-size:13px">Port &amp; Service Scan</div>
+        </div>
+      </div>
+      <div class="tools-row">
+        <span class="tool-pill s-vuln">nmap (full)</span>
+        <span class="tool-pill s-vuln">masscan</span>
+        <span class="tool-pill s-vuln">rustscan</span>
+        <span class="tool-pill s-vuln">nmap scripts</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+
+  <!-- STAGE 3 -->
+  <div class="section-label">Stage 3 — Web Crawling &amp; Directory Enum</div>
+  <div class="stage s-web">
+    <div class="stage-header">
+      <div class="stage-icon"><i class="ti ti-spider" aria-hidden="true"></i></div>
+      <div>
+        <div class="stage-title">Web Surface Mapping</div>
+        <div class="stage-sub">Crawl pages, find hidden paths, tech fingerprint</div>
+      </div>
+    </div>
+    <div class="tools-row">
+      <span class="tool-pill s-web">nikto</span>
+      <span class="tool-pill s-web">dirb</span>
+      <span class="tool-pill s-web">gobuster (dir)</span>
+      <span class="tool-pill s-web">ffuf</span>
+      <span class="tool-pill s-web">whatweb</span>
+      <span class="tool-pill s-web">wafw00f</span>
+      <span class="tool-pill s-web">curl / wget</span>
+      <span class="tool-pill s-web">httpx</span>
+      <span class="tool-pill s-web">eyewitness</span>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+
+  <!-- STAGE 4 -->
+  <div class="section-label">Stage 4 — Vulnerability Detection</div>
+  <div class="two-col">
+    <div class="col-stage s-vuln">
+      <div class="stage-header">
+        <div class="stage-icon" style="width:26px;height:26px;font-size:13px"><i class="ti ti-bug" aria-hidden="true"></i></div>
+        <div>
+          <div class="stage-title" style="font-size:13px">Auto Vuln Scan</div>
+        </div>
+      </div>
+      <div class="tools-row">
+        <span class="tool-pill s-vuln">nuclei</span>
+        <span class="tool-pill s-vuln">openvas</span>
+        <span class="tool-pill s-vuln">wpscan</span>
+        <span class="tool-pill s-vuln">joomscan</span>
+        <span class="tool-pill s-vuln">sqlmap</span>
+      </div>
+    </div>
+    <div class="col-stage s-web">
+      <div class="stage-header">
+        <div class="stage-icon" style="width:26px;height:26px;font-size:13px"><i class="ti ti-certificate" aria-hidden="true"></i></div>
+        <div>
+          <div class="stage-title" style="font-size:13px">SSL / Header Check</div>
+        </div>
+      </div>
+      <div class="tools-row">
+        <span class="tool-pill s-web">sslscan</span>
+        <span class="tool-pill s-web">testssl.sh</span>
+        <span class="tool-pill s-web">sslyze</span>
+        <span class="tool-pill s-web">nmap ssl-*</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+
+  <!-- STAGE 5 INTEL -->
+  <div class="section-label">Stage 5 — Intelligence Layer <span class="badge-new">AI-enhanced</span></div>
+  <div class="stage s-intel">
+    <div class="stage-header">
+      <div class="stage-icon"><i class="ti ti-brain" aria-hidden="true"></i></div>
+      <div>
+        <div class="stage-title">Data Aggregation &amp; Correlation Engine</div>
+        <div class="stage-sub">All tool outputs merged → context built → patterns extracted</div>
+      </div>
+    </div>
+    <div class="tools-row">
+      <span class="tool-pill s-intel">JSON aggregator</span>
+      <span class="tool-pill s-intel">CVE lookup (NVD API)</span>
+      <span class="tool-pill s-intel">MITRE ATT&amp;CK map</span>
+      <span class="tool-pill s-intel">risk scorer</span>
+      <span class="tool-pill s-intel">dedup &amp; enrich</span>
+      <span class="tool-pill s-intel">threat intel feed</span>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+
+  <!-- STAGE 6 AI -->
+  <div class="section-label">Stage 6 — AI Report Generation <span class="badge-new">Claude / LLM</span></div>
+  <div class="stage s-ai">
+    <div class="stage-header">
+      <div class="stage-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
+      <div>
+        <div class="stage-title">AI Analysis &amp; Natural Language Report</div>
+        <div class="stage-sub">LLM converts raw findings into plain-English narrative</div>
+      </div>
+    </div>
+    <div class="tools-row">
+      <span class="tool-pill s-ai">risk prioritisation</span>
+      <span class="tool-pill s-ai">plain-English findings</span>
+      <span class="tool-pill s-ai">business impact</span>
+      <span class="tool-pill s-ai">remediation steps</span>
+      <span class="tool-pill s-ai">executive summary</span>
+      <span class="tool-pill s-ai">severity scoring</span>
+    </div>
+  </div>
+
+  <div class="arrow-connector">↓</div>
+
+  <!-- OUTPUT -->
+  <div class="section-label">Output — Final Report</div>
+  <div class="stage s-report">
+    <div class="stage-header">
+      <div class="stage-icon"><i class="ti ti-file-analytics" aria-hidden="true"></i></div>
+      <div>
+        <div class="stage-title">Multi-format Report Export</div>
+        <div class="stage-sub">Readable by both technical teams and management</div>
+      </div>
+    </div>
+    <div class="report-row">
+      <div class="report-card" style="background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info)">
+        <div style="font-size:16px;margin-bottom:4px"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+        PDF Report<br><span style="font-weight:400;font-size:11px">Executive + Technical</span>
+      </div>
+      <div class="report-card" style="background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success)">
+        <div style="font-size:16px;margin-bottom:4px"><i class="ti ti-table" aria-hidden="true"></i></div>
+        JSON / CSV<br><span style="font-weight:400;font-size:11px">Machine-readable</span>
+      </div>
+      <div class="report-card" style="background:var(--color-background-warning);color:var(--color-text-warning);border:0.5px solid var(--color-border-warning)">
+        <div style="font-size:16px;margin-bottom:4px"><i class="ti ti-browser" aria-hidden="true"></i></div>
+        HTML Dashboard<br><span style="font-weight:400;font-size:11px">Interactive view</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Aarchai Dashboard — {{ target }}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0c10;--surface:#0f1117;--card:#13161e;--border:#1e2535;
+    --text:#e2e8f0;--muted:#7a8499;--dim:#3d4661;
+    --critical:#ef4444;--high:#f97316;--medium:#f59e0b;--low:#3b82f6;--info:#64748b;
+    --blue:#3b82f6;--teal:#14b8a6;--purple:#a78bfa;--green:#22c55e;
+  }
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;
+    background-image:linear-gradient(rgba(59,130,246,.03)1px,transparent 1px),
+      linear-gradient(90deg,rgba(59,130,246,.03)1px,transparent 1px);
+    background-size:40px 40px;pointer-events:none;z-index:0}
+
+  /* Header */
+  header{position:relative;z-index:10;background:rgba(15,17,23,.95);
+    border-bottom:1px solid var(--border);backdrop-filter:blur(12px);
+    padding:0 32px;display:flex;align-items:center;gap:16px;height:56px}
+  .logo{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;
+    background:linear-gradient(135deg,#e2e8f0,#a78bfa);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .target-pill{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);
+    background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.2);
+    border-radius:20px;padding:3px 12px}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .scan-badge{font-size:10px;color:var(--muted)}
+
+  /* Layout */
+  .layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 56px);position:relative;z-index:5}
+
+  /* Sidebar */
+  aside{background:var(--surface);border-right:1px solid var(--border);padding:24px 16px}
+  .aside-label{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:10px;padding-left:4px}
+  .sev-item{display:flex;align-items:center;gap:10px;padding:10px 12px;
+    border-radius:8px;cursor:pointer;transition:background .2s;margin-bottom:2px;border:none;
+    background:transparent;width:100%;text-align:left}
+  .sev-item:hover,.sev-item.active{background:rgba(255,255,255,.05)}
+  .sev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .sev-name{font-size:13px;color:var(--text);flex:1}
+  .sev-count{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+  .dot-critical{background:var(--critical)} .count-critical{color:var(--critical)}
+  .dot-high    {background:var(--high)}     .count-high    {color:var(--high)}
+  .dot-medium  {background:var(--medium)}   .count-medium  {color:var(--medium)}
+  .dot-low     {background:var(--low)}      .count-low     {color:var(--low)}
+  .dot-info    {background:var(--info)}     .count-info    {color:var(--info)}
+
+  .divider{height:1px;background:var(--border);margin:16px 0}
+
+  /* Tool filters */
+  .tool-btn{display:block;width:100%;text-align:left;padding:6px 12px;background:transparent;
+    border:none;color:var(--muted);font-size:11.5px;font-family:'JetBrains Mono',monospace;
+    border-radius:6px;cursor:pointer;transition:all .2s}
+  .tool-btn:hover,.tool-btn.active{background:rgba(59,130,246,.1);color:var(--blue)}
+
+  /* Main content */
+  main{padding:24px 28px;overflow-y:auto}
+
+  /* Stats row */
+  .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:24px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:16px;text-align:center;transition:border-color .2s}
+  .stat-card:hover{border-color:rgba(255,255,255,.15)}
+  .stat-num{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600}
+  .stat-label{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Search bar */
+  .search-wrap{display:flex;gap:10px;margin-bottom:20px}
+  .search-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:8px;
+    padding:9px 14px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none}
+  .search-input:focus{border-color:var(--blue)}
+  .search-input::placeholder{color:var(--muted)}
+
+  /* Findings list */
+  .finding{background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;margin-bottom:8px;border-left:3px solid var(--sev-col);
+    transition:box-shadow .2s,transform .15s;cursor:pointer}
+  .finding:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.4)}
+  .finding[data-sev="critical"]{--sev-col:var(--critical)}
+  .finding[data-sev="high"]    {--sev-col:var(--high)}
+  .finding[data-sev="medium"]  {--sev-col:var(--medium)}
+  .finding[data-sev="low"]     {--sev-col:var(--low)}
+  .finding[data-sev="info"]    {--sev-col:var(--info)}
+  .finding-head{display:flex;align-items:center;gap:10px}
+  .sev-chip{font-size:9px;font-weight:600;padding:2px 8px;border-radius:12px;
+    text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
+  .chip-critical{background:rgba(239,68,68,.15);color:var(--critical);border:1px solid rgba(239,68,68,.25)}
+  .chip-high    {background:rgba(249,115,22,.15);color:var(--high);    border:1px solid rgba(249,115,22,.25)}
+  .chip-medium  {background:rgba(245,158,11,.15);color:var(--medium);  border:1px solid rgba(245,158,11,.25)}
+  .chip-low     {background:rgba(59,130,246,.15); color:var(--low);    border:1px solid rgba(59,130,246,.25)}
+  .chip-info    {background:rgba(100,116,139,.15);color:var(--info);   border:1px solid rgba(100,116,139,.25)}
+  .finding-title{font-size:13px;font-weight:500;color:var(--text);flex:1;min-width:0}
+  .tool-chip{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal);
+    background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.15);
+    border-radius:4px;padding:1px 7px;flex-shrink:0}
+  .finding-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:5px}
+
+  /* Detail panel */
+  .detail-panel{position:fixed;right:0;top:56px;bottom:0;width:440px;
+    background:var(--surface);border-left:1px solid var(--border);
+    transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+    z-index:100;overflow-y:auto;padding:24px}
+  .detail-panel.open{transform:translateX(0)}
+  .panel-close{position:absolute;top:16px;right:16px;background:transparent;border:none;
+    color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px}
+  .panel-close:hover{color:var(--text)}
+  .detail-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;padding-right:40px}
+  .detail-row{display:flex;gap:8px;margin-bottom:6px;font-size:12px}
+  .detail-key{color:var(--muted);min-width:80px;flex-shrink:0}
+  .detail-val{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;word-break:break-all}
+  .detail-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+  .detail-section-label{font-size:10px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  .detail-text{font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-wrap}
+  .remediation-box{background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);
+    border-radius:8px;padding:12px;font-size:12px;color:#86efac;line-height:1.6}
+  .cve-badge{font-family:'JetBrains Mono',monospace;font-size:9px;
+    background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);
+    border-radius:4px;padding:1px 7px;margin-right:4px;display:inline-block;margin-bottom:3px}
+
+  /* Empty state */
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+  .empty-text{font-size:14px}
+
+  /* Assets tab */
+  .tab-bar{display:flex;gap:4px;margin-bottom:20px;background:var(--card);
+    border:1px solid var(--border);border-radius:8px;padding:4px}
+  .tab{padding:7px 18px;border-radius:6px;border:none;background:transparent;
+    color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s}
+  .tab.active{background:rgba(59,130,246,.15);color:var(--blue)}
+
+  .asset-table{width:100%;border-collapse:collapse}
+  .asset-table th{padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+  .asset-table td{padding:8px 12px;font-size:11px;font-family:'JetBrains Mono',monospace;
+    color:#94a3b8;border-bottom:1px solid var(--border)}
+  .asset-table tr:hover td{background:rgba(255,255,255,.02)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">&#x22EF; Aarchai</div>
+  <div class="target-pill">{{ target }}</div>
+  <span class="scan-badge">Scan #{{ scan_id }} &bull; {{ total_findings }} findings &bull; {{ total_assets }} assets</span>
+  <div class="header-right">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal)">&#x25cf; Kali Linux</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside>
+    <div class="aside-label">Severity</div>
+    <button class="sev-item active" onclick="filterSev('all')">
+      <span class="sev-dot" style="background:var(--blue)"></span>
+      <span class="sev-name">All</span>
+      <span class="sev-count" style="color:var(--blue)">{{ total_findings }}</span>
+    </button>
+    {% for sev, count in sev_counts.items() %}{% if count > 0 %}
+    <button class="sev-item" onclick="filterSev('{{ sev }}')">
+      <span class="sev-dot dot-{{ sev }}"></span>
+      <span class="sev-name">{{ sev | capitalize }}</span>
+      <span class="sev-count count-{{ sev }}">{{ count }}</span>
+    </button>
+    {% endif %}{% endfor %}
+
+    <div class="divider"></div>
+    <div class="aside-label">Tools</div>
+    <button class="tool-btn active" onclick="filterTool('all')">All tools</button>
+    {% set tools = [] %}
+    {% for f in findings %}{% if f.tool not in tools %}{% set _ = tools.append(f.tool) %}{% endif %}{% endfor %}
+    {% for tool in tools %}
+    <button class="tool-btn" onclick="filterTool('{{ tool }}')">{{ tool }}</button>
+    {% endfor %}
+  </aside>
+
+  <!-- Main -->
+  <main>
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--critical)">{{ sev_counts.critical }}</div>
+        <div class="stat-label">Critical</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--high)">{{ sev_counts.high }}</div>
+        <div class="stat-label">High</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--medium)">{{ sev_counts.medium }}</div>
+        <div class="stat-label">Medium</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--low)">{{ sev_counts.low }}</div>
+        <div class="stat-label">Low</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--info)">{{ sev_counts.info }}</div>
+        <div class="stat-label">Info</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--teal)">{{ total_assets }}</div>
+        <div class="stat-label">Assets</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab active" onclick="showTab('findings', this)">Findings</button>
+      <button class="tab" onclick="showTab('assets', this)">Assets</button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap" id="search-wrap">
+      <input class="search-input" id="search" placeholder="Search findings by title, host, tool..." oninput="applyFilters()"/>
+    </div>
+
+    <!-- Findings tab -->
+    <div id="tab-findings">
+      <div id="findings-list"></div>
+    </div>
+
+    <!-- Assets tab -->
+    <div id="tab-assets" style="display:none">
+      <table class="asset-table">
+        <thead><tr><th>Type</th><th>Value</th><th>Port</th><th>Service</th><th>Source</th></tr></thead>
+        <tbody>
+        {% for a in assets %}
+        <tr>
+          <td>{{ a.get("type","") }}</td>
+          <td>{{ a.get("value","") }}</td>
+          <td>{{ a.get("port","") or "" }}</td>
+          <td>{{ a.get("service","") or "" }}</td>
+          <td>{{ a.get("source_tool","") }}</td>
+        </tr>
+        {% endfor %}
+        {% if not assets %}
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">No assets recorded</td></tr>
+        {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel" id="detail-panel">
+  <button class="panel-close" onclick="closePanel()">&#x2715;</button>
+  <div id="panel-content"></div>
+</div>
+
+<script>
+const FINDINGS = {{ findings_json }};
+let activeSev  = 'all';
+let activeTool = 'all';
+
+function filterSev(sev) {
+  activeSev = sev;
+  document.querySelectorAll('.sev-item').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  applyFilters();
+}
+
+function filterTool(tool) {
+  activeTool = tool;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const filtered = FINDINGS.filter(f => {
+    if (activeSev !== 'all' && f.severity !== activeSev) return false;
+    if (activeTool !== 'all' && f.tool !== activeTool) return false;
+    if (q && !f.title.toLowerCase().includes(q)
+           && !(f.host||'').toLowerCase().includes(q)
+           && !f.tool.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderFindings(filtered);
+}
+
+function renderFindings(list) {
+  const el = document.getElementById('findings-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128269;</div><div class="empty-text">No findings match the current filter</div></div>';
+    return;
+  }
+  el.innerHTML = list.map((f, i) => `
+    <div class="finding" data-sev="${f.severity}" onclick="openPanel(${FINDINGS.indexOf(f)})">
+      <div class="finding-head">
+        <span class="sev-chip chip-${f.severity}">${f.severity}</span>
+        <span class="finding-title">${escHtml(f.title)}</span>
+        <span class="tool-chip">${f.tool}</span>
+      </div>
+      <div class="finding-meta">
+        ${f.host ? f.host : ''}${f.port ? ':'+f.port : ''}
+        ${f.cve_ids && f.cve_ids.length ? ' &bull; '+f.cve_ids.slice(0,2).join(', ') : ''}
+        ${f.cvss_score ? ' &bull; CVSS '+f.cvss_score : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openPanel(idx) {
+  const f = FINDINGS[idx];
+  document.getElementById('panel-content').innerHTML = `
+    <span class="sev-chip chip-${f.severity}" style="margin-bottom:10px;display:inline-block">${f.severity}</span>
+    <div class="detail-title">${escHtml(f.title)}</div>
+    ${row('Tool', f.tool)}
+    ${f.host ? row('Host', f.host + (f.port ? ':'+f.port : '')) : ''}
+    ${f.url  ? row('URL',  f.url) : ''}
+    ${f.cvss_score ? row('CVSS', f.cvss_score) : ''}
+    ${f.cve_ids && f.cve_ids.length ? `<div class="detail-row"><span class="detail-key">CVEs</span><span class="detail-val">${f.cve_ids.map(c=>'<span class="cve-badge">'+c+'</span>').join('')}</span></div>` : ''}
+    ${f.description ? `<div class="detail-section"><div class="detail-section-label">Description</div><div class="detail-text">${escHtml(f.description)}</div></div>` : ''}
+    ${f.remediation ? `<div class="detail-section"><div class="detail-section-label">Remediation</div><div class="remediation-box">${escHtml(f.remediation)}</div></div>` : ''}
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+function row(k, v) {
+  return `<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${escHtml(String(v))}</span></div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showTab(name, btn) {
+  document.getElementById('tab-findings').style.display = name === 'findings' ? '' : 'none';
+  document.getElementById('tab-assets').style.display   = name === 'assets'   ? '' : 'none';
+  document.getElementById('search-wrap').style.display  = name === 'findings' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Initial render
+applyFilters();
+</script>
+</body>
+</html>

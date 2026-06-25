@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aarchai — Recon Architecture v3</title>
+<meta name="description" content="Aarchai automated recon framework architecture — full pipeline from target input to AI-generated reports, running on Kali Linux."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT & TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --bg-base:      #0a0c10;
+  --bg-surface:   #0f1117;
+  --bg-card:      #13161e;
+  --bg-card2:     #181c26;
+  --border:       #1e2535;
+
+  --text-primary: #e2e8f0;
+  --text-sec:     #7a8499;
+  --text-dim:     #3d4661;
+
+  --blue:   #3b82f6;
+  --cyan:   #06b6d4;
+  --teal:   #14b8a6;
+  --green:  #22c55e;
+  --purple: #a78bfa;
+  --pink:   #ec4899;
+  --amber:  #f59e0b;
+  --coral:  #f97316;
+  --red:    #ef4444;
+
+  --blue-d:   rgba(59,130,246,.12);
+  --cyan-d:   rgba(6,182,212,.12);
+  --teal-d:   rgba(20,184,166,.12);
+  --green-d:  rgba(34,197,94,.12);
+  --purple-d: rgba(167,139,250,.12);
+  --pink-d:   rgba(236,72,153,.12);
+  --amber-d:  rgba(245,158,11,.12);
+  --coral-d:  rgba(249,115,22,.12);
+  --red-d:    rgba(239,68,68,.12);
+
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 7px;
+  --radius-pill: 20px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 400px;
+  background: radial-gradient(ellipse at center,
+    rgba(59,130,246,.08) 0%,
+    rgba(167,139,250,.05) 40%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: nebula 8s ease-in-out infinite alternate;
+}
+
+@keyframes nebula {
+  from { opacity: .6; transform: translateX(-50%) scale(1); }
+  to   { opacity: 1;  transform: translateX(-50%) scale(1.1); }
+}
+
+/* ── HEADER ── */
+header {
+  position: relative; z-index: 10;
+  text-align: center;
+  padding: 56px 24px 32px;
+}
+
+.header-kali {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 4px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--teal);
+  letter-spacing: .06em;
+  margin-bottom: 20px;
+}
+.header-kali::before {
+  content: '';
+  display: inline-block; width: 6px; height: 6px;
+  background: var(--teal); border-radius: 50%;
+  animation: pulse-dot 1.4s ease infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(20,184,166,.4); }
+  50%      { opacity: .7; box-shadow: 0 0 0 5px rgba(20,184,166,0); }
+}
+
+header h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  background: linear-gradient(135deg, #e2e8f0 0%, #a78bfa 40%, #3b82f6 80%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+}
+
+header p {
+  color: var(--text-sec);
+  font-size: 15px;
+  max-width: 560px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+}
+
+.header-stats {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; flex-wrap: wrap;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; font-weight: 600;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-label { font-size: 11px; color: var(--text-sec); margin-top: 1px; }
+.stat-sep { width: 1px; height: 32px; background: var(--border); }
+
+/* ── MAIN ── */
+main {
+  position: relative; z-index: 5;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+/* ── SECTION LABEL ── */
+.sec-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+.sec-label .badge {
+  font-size: 9px; font-weight: 600;
+  padding: 1px 7px; border-radius: var(--radius-pill);
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.badge-new  { background: rgba(34,197,94,.15);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+.badge-ai   { background: rgba(167,139,250,.15); color: var(--purple); border: 1px solid rgba(167,139,250,.3); animation: ai-glow 2s ease-in-out infinite alternate; }
+.badge-kali { background: rgba(6,182,212,.12);  color: var(--cyan);   border: 1px solid rgba(6,182,212,.3); }
+.badge-par  { background: rgba(245,158,11,.12);  color: var(--amber);  border: 1px solid rgba(245,158,11,.3); }
+.badge-llm  { background: rgba(34,197,94,.12);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); animation: ai-glow 2s ease-in-out infinite alternate; }
+
+@keyframes ai-glow {
+  from { box-shadow: 0 0 0 0 transparent; }
+  to   { box-shadow: 0 0 10px rgba(167,139,250,.5); }
+}
+
+/* ── FLOW ARROW ── */
+.flow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  height: 36px; position: relative;
+}
+.flow-arrow::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 1px; height: 100%;
+  background: linear-gradient(to bottom, var(--border), rgba(59,130,246,.4), var(--border));
+}
+.flow-arrow-icon {
+  position: relative; z-index: 1;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid rgba(59,130,246,.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--blue);
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  transition: border-color .25s, box-shadow .25s, transform .2s;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.card:hover { transform: translateY(-2px); }
+
+.card.c-blue   { --acc: var(--blue);   --acc-d: var(--blue-d);   --glow: 0 0 20px rgba(59,130,246,.25); }
+.card.c-cyan   { --acc: var(--cyan);   --acc-d: var(--cyan-d);   --glow: 0 0 20px rgba(6,182,212,.25); }
+.card.c-teal   { --acc: var(--teal);   --acc-d: var(--teal-d);   --glow: 0 0 20px rgba(20,184,166,.25); }
+.card.c-green  { --acc: var(--green);  --acc-d: var(--green-d);  --glow: 0 0 20px rgba(34,197,94,.25); }
+.card.c-purple { --acc: var(--purple); --acc-d: var(--purple-d); --glow: 0 0 20px rgba(167,139,250,.25); }
+.card.c-pink   { --acc: var(--pink);   --acc-d: var(--pink-d);   --glow: 0 0 20px rgba(236,72,153,.25); }
+.card.c-amber  { --acc: var(--amber);  --acc-d: var(--amber-d);  --glow: 0 0 20px rgba(245,158,11,.25); }
+.card.c-coral  { --acc: var(--coral);  --acc-d: var(--coral-d);  --glow: 0 0 20px rgba(249,115,22,.25); }
+
+.card:hover { border-color: var(--acc); box-shadow: var(--glow), 0 8px 32px rgba(0,0,0,.4); }
+.card::before { background: linear-gradient(90deg, transparent, var(--acc), transparent); }
+.card:hover::before { opacity: 1; }
+
+.card-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+}
+.card-ico {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--acc-d);
+  border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; color: var(--acc);
+  flex-shrink: 0;
+}
+.card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.card-sub   { font-size: 11px; color: var(--text-sec); margin-top: 2px; line-height: 1.4; }
+
+.card.sm .card-ico { width: 28px; height: 28px; font-size: 13px; }
+.card.sm .card-title { font-size: 13px; }
+.card.sm .card-sub   { font-size: 10.5px; }
+.card.sm { padding: 12px 14px; }
+
+/* ── PILLS ── */
+.pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--acc) 10%, transparent);
+  color: color-mix(in srgb, var(--acc) 80%, var(--text-primary));
+  border: 1px solid color-mix(in srgb, var(--acc) 25%, transparent);
+  transition: background .2s, border-color .2s, transform .15s;
+  cursor: pointer;
+  user-select: none;
+}
+.pill:hover {
+  background: color-mix(in srgb, var(--acc) 20%, transparent);
+  border-color: color-mix(in srgb, var(--acc) 50%, transparent);
+  transform: scale(1.06);
+}
+
+/* ── GRIDS ── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+@media(max-width:640px) {
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+@media(min-width:641px) and (max-width:800px) {
+  .grid3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── IO TAGS ── */
+.io-tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-top: 10px;
+}
+.io-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  padding: 2px 8px; border-radius: 4px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  color: var(--text-sec);
+}
+
+/* ── TERMINAL CHIP ── */
+.terminal-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--teal);
+  background: rgba(20,184,166,.08);
+  border: 1px solid rgba(20,184,166,.2);
+  border-radius: 5px; padding: 2px 8px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ── SCAN BAR ── */
+.scan-bar {
+  height: 2px; border-radius: 1px;
+  background: var(--border);
+  margin-top: 12px;
+  overflow: hidden; position: relative;
+}
+.scan-bar::after {
+  content: '';
+  position: absolute;
+  left: -40%; top: 0; bottom: 0; width: 40%;
+  background: linear-gradient(90deg, transparent, var(--acc), transparent);
+  animation: scan 2.2s linear infinite;
+}
+@keyframes scan {
+  from { left: -40%; }
+  to   { left: 120%; }
+}
+
+/* ── STAGE ── */
+.stage { margin-bottom: 4px; }
+
+/* ── TOOLTIP ── */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%; transform: translateX(-50%);
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 11px; font-family: 'Inter', sans-serif;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+
+/* ── FADE IN ── */
+.fade-in {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 5;
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+footer span { color: var(--text-sec); }
+
+/* ── PIPELINE CONNECTOR ── */
+.pipe-connector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  margin: 2px 0;
+}
+.pipe-connector::before {
+  content:'';
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, var(--border) 0%, var(--blue) 50%, var(--border) 100%);
+  border-radius: 1px;
+}
+.pipe-dot {
+  position: relative; z-index: 1;
+  width: 24px; height: 24px;
+  background: var(--bg-card);
+  border: 1.5px solid rgba(59,130,246,.4);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--blue);
+  font-size: 12px;
+  transition: border-color .3s, box-shadow .3s;
+}
+.pipe-dot:hover {
+  border-color: var(--blue);
+  box-shadow: 0 0 10px rgba(59,130,246,.4);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-kali">&#x25cf; Kali Linux &bull; Aarchai Recon Framework v3</div>
+  <h1>Aarchai Architecture</h1>
+  <p>Automated, AI-enhanced reconnaissance pipeline &mdash; from target input to executive report, built for Kali Linux.</p>
+  <div class="header-stats">
+    <div class="stat"><div class="stat-num">6</div><div class="stat-label">Recon Stages</div></div>
+    <div class="stat-sep"></div>
+    <div class="stat"><div class="stat-num">30+</div><div class="stat-label">Kali Tools</div></div>
+    <div class="stat-sep"></div>
+    <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Report Engine</div></div>
+    <div class="stat-sep"></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Output Formats</div></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- INPUT -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#3b82f6"/></svg>
+    Input
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-blue">
+      <div class="card-head">
+        <div class="card-ico">&#127919;</div>
+        <div>
+          <div class="card-title">Target Input</div>
+          <div class="card-sub">Specify what to recon &mdash; single or bulk targets</div>
+        </div>
+        <div class="terminal-chip">$ aarchai --target</div>
+      </div>
+      <div class="io-tags">
+        <span class="io-tag">Domain</span>
+        <span class="io-tag">IP Address</span>
+        <span class="io-tag">CIDR Range</span>
+        <span class="io-tag">IP:PORT</span>
+        <span class="io-tag">Subdomain wildcard</span>
+        <span class="io-tag">URL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- INFRASTRUCTURE -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#a78bfa"/></svg>
+    Infrastructure Layer
+    <span class="badge badge-new">New</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="grid3">
+      <div class="card sm c-purple" data-tip="PostgreSQL stores all assets, history, diffs">
+        <div class="card-head">
+          <div class="card-ico">&#128451;</div>
+          <div>
+            <div class="card-title">Asset DB</div>
+            <div class="card-sub">PostgreSQL &bull; domains, IPs, ports, subdomains, history</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">PostgreSQL</span>
+          <span class="pill">SQLAlchemy</span>
+          <span class="pill">migrations</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+      <div class="card sm c-amber" data-tip="Redis + Celery for async parallel scan dispatch">
+        <div class="card-head">
+          <div class="card-ico">&#128236;</div>
+          <div>
+            <div class="card-title">Task Queue</div>
+            <div class="card-sub">Redis + Celery &bull; async scan dispatch</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">Redis</span>
+          <span class="pill">Celery</span>
+          <span class="pill">workers</span>
+          <span class="pill">retry</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+      <div class="card sm c-teal" data-tip="Tracks lifecycle of every scan task">
+        <div class="card-head">
+          <div class="card-ico">&#9881;</div>
+          <div>
+            <div class="card-title">Job Manager</div>
+            <div class="card-sub">Pending &bull; Running &bull; Done &bull; Failed &bull; Cancelled</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">lifecycle</span>
+          <span class="pill">timeout</span>
+          <span class="pill">logs</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- STAGE 1 -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#a78bfa"/></svg>
+    Stage 1 &mdash; Passive Recon
+    <span class="badge badge-kali">Kali</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-purple">
+      <div class="card-head">
+        <div class="card-ico">&#128065;</div>
+        <div>
+          <div class="card-title">Passive Intelligence Gathering</div>
+          <div class="card-sub">Silent &mdash; zero direct target contact &bull; OSINT only</div>
+        </div>
+        <div class="terminal-chip">--passive</div>
+      </div>
+      <div class="pills">
+        <span class="pill">whois</span>
+        <span class="pill">theHarvester</span>
+        <span class="pill">recon-ng</span>
+        <span class="pill">Shodan CLI</span>
+        <span class="pill">amass (passive)</span>
+        <span class="pill">dnsx</span>
+        <span class="pill">crt.sh</span>
+        <span class="pill">Censys</span>
+        <span class="pill">maltego</span>
+        <span class="pill">googledork</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- STAGE 2 -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#14b8a6"/></svg>
+    Stage 2 &mdash; Active Recon
+    <span class="badge badge-par">Parallel</span>
+    <span class="badge badge-kali">Kali</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="grid2">
+      <div class="card sm c-teal">
+        <div class="card-head">
+          <div class="card-ico">&#127760;</div>
+          <div>
+            <div class="card-title">Subdomain &amp; DNS</div>
+            <div class="card-sub">Enumerate all reachable subdomains</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">subfinder</span>
+          <span class="pill">amass</span>
+          <span class="pill">fierce</span>
+          <span class="pill">dnsrecon</span>
+          <span class="pill">gobuster DNS</span>
+          <span class="pill">massdns</span>
+          <span class="pill">altdns</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+      <div class="card sm c-coral">
+        <div class="card-head">
+          <div class="card-ico">&#128268;</div>
+          <div>
+            <div class="card-title">Port &amp; Service Scan</div>
+            <div class="card-sub">Detect open ports, banners, versions</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">nmap</span>
+          <span class="pill">masscan</span>
+          <span class="pill">rustscan</span>
+          <span class="pill">nmap scripts</span>
+          <span class="pill">naabu</span>
+          <span class="pill">banner grab</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- STAGE 3 -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#f59e0b"/></svg>
+    Stage 3 &mdash; Web Surface Mapping
+    <span class="badge badge-kali">Kali</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-amber">
+      <div class="card-head">
+        <div class="card-ico">&#128375;</div>
+        <div>
+          <div class="card-title">Crawling, Dir Enum &amp; Fingerprinting</div>
+          <div class="card-sub">Map the full web attack surface &mdash; directories, tech stack, WAF</div>
+        </div>
+        <div class="terminal-chip">--stage web</div>
+      </div>
+      <div class="pills">
+        <span class="pill">nikto</span>
+        <span class="pill">dirb</span>
+        <span class="pill">ffuf</span>
+        <span class="pill">gobuster</span>
+        <span class="pill">whatweb</span>
+        <span class="pill">wafw00f</span>
+        <span class="pill">httpx</span>
+        <span class="pill">eyewitness</span>
+        <span class="pill">katana</span>
+        <span class="pill">gau</span>
+        <span class="pill">arjun</span>
+        <span class="pill">wappalyzer</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- STAGE 4 -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#f97316"/></svg>
+    Stage 4 &mdash; Vulnerability Detection
+    <span class="badge badge-par">Parallel</span>
+    <span class="badge badge-kali">Kali</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="grid2">
+      <div class="card sm c-coral">
+        <div class="card-head">
+          <div class="card-ico">&#128027;</div>
+          <div>
+            <div class="card-title">Auto Vuln Scan</div>
+            <div class="card-sub">Template-based &amp; active scanning</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">nuclei</span>
+          <span class="pill">openvas</span>
+          <span class="pill">wpscan</span>
+          <span class="pill">sqlmap</span>
+          <span class="pill">dalfox</span>
+          <span class="pill">commix</span>
+          <span class="pill">XSStrike</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+      <div class="card sm c-amber">
+        <div class="card-head">
+          <div class="card-ico">&#128272;</div>
+          <div>
+            <div class="card-title">SSL / Header Audit</div>
+            <div class="card-sub">Cipher suites, HSTS, misconfigurations</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">sslscan</span>
+          <span class="pill">testssl.sh</span>
+          <span class="pill">sslyze</span>
+          <span class="pill">nmap ssl-*</span>
+          <span class="pill">shcheck</span>
+        </div>
+        <div class="scan-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- RESULT NORMALIZER -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#14b8a6"/></svg>
+    Result Normalizer
+    <span class="badge badge-new">New</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-teal">
+      <div class="card-head">
+        <div class="card-ico">&#9889;</div>
+        <div>
+          <div class="card-title">Unified JSON Schema Converter</div>
+          <div class="card-sub">All tool outputs &rarr; one common schema &bull; dedup &bull; severity normalise</div>
+        </div>
+        <div class="terminal-chip">normalizer.py</div>
+      </div>
+      <div class="pills">
+        <span class="pill">parser per tool</span>
+        <span class="pill">field mapping</span>
+        <span class="pill">dedup engine</span>
+        <span class="pill">severity normalise</span>
+        <span class="pill">schema validator</span>
+        <span class="pill">fingerprint hash</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- SCAN HISTORY -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#3b82f6"/></svg>
+    Scan History &amp; Diff Engine
+    <span class="badge badge-new">New</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-blue">
+      <div class="card-head">
+        <div class="card-ico">&#128202;</div>
+        <div>
+          <div class="card-title">Persistent Scan Storage + Delta Comparison</div>
+          <div class="card-sub">Every scan stored &bull; old vs new diffing &bull; trend tracking over time</div>
+        </div>
+        <div class="terminal-chip">diff_engine.py</div>
+      </div>
+      <div class="pills">
+        <span class="pill">scan snapshots</span>
+        <span class="pill">new findings</span>
+        <span class="pill">resolved findings</span>
+        <span class="pill">asset changes</span>
+        <span class="pill">trend tracking</span>
+        <span class="pill">regression alerts</span>
+        <span class="pill">JIRA export</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- STAGE 5 -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#ec4899"/></svg>
+    Stage 5 &mdash; Intelligence Layer
+    <span class="badge badge-ai">AI-Enhanced</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-pink">
+      <div class="card-head">
+        <div class="card-ico">&#129504;</div>
+        <div>
+          <div class="card-title">Aggregation, Correlation &amp; Enrichment</div>
+          <div class="card-sub">CVE lookup &bull; MITRE ATT&amp;CK map &bull; risk scoring &bull; threat intel</div>
+        </div>
+        <div class="terminal-chip">intel_engine.py</div>
+      </div>
+      <div class="pills">
+        <span class="pill">CVE / NVD API</span>
+        <span class="pill">MITRE ATT&amp;CK</span>
+        <span class="pill">risk scorer</span>
+        <span class="pill">threat intel feed</span>
+        <span class="pill">OSINT enrichment</span>
+        <span class="pill">VirusTotal</span>
+        <span class="pill">EPSS score</span>
+        <span class="pill">CVSS v3.1</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- STAGE 6 -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#22c55e"/></svg>
+    Stage 6 &mdash; AI Report Generation
+    <span class="badge badge-llm">LLM</span>
+  </div>
+  <div class="stage fade-in">
+    <div class="card c-green">
+      <div class="card-head">
+        <div class="card-ico">&#10024;</div>
+        <div>
+          <div class="card-title">LLM Narrative + Plain-English Report</div>
+          <div class="card-sub">Business impact &bull; remediation steps &bull; executive summary &bull; fix priorities</div>
+        </div>
+        <div class="terminal-chip">report_gen.py</div>
+      </div>
+      <div class="pills">
+        <span class="pill">severity ranking</span>
+        <span class="pill">plain-English findings</span>
+        <span class="pill">fix steps</span>
+        <span class="pill">exec summary</span>
+        <span class="pill">attack path viz</span>
+        <span class="pill">remediation ETA</span>
+        <span class="pill">business impact</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-connector fade-in"><div class="pipe-dot">&#x2193;</div></div>
+
+  <!-- OUTPUT -->
+  <div class="sec-label fade-in">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#06b6d4"/></svg>
+    Output
+  </div>
+  <div class="stage fade-in">
+    <div class="grid3">
+      <div class="card sm c-blue">
+        <div class="card-head">
+          <div class="card-ico">&#128196;</div>
+          <div>
+            <div class="card-title">PDF Report</div>
+            <div class="card-sub">Executive + full technical</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">exec summary</span>
+          <span class="pill">findings</span>
+          <span class="pill">PoC</span>
+        </div>
+      </div>
+      <div class="card sm c-teal">
+        <div class="card-head">
+          <div class="card-ico">&#128230;</div>
+          <div>
+            <div class="card-title">JSON / CSV</div>
+            <div class="card-sub">Machine-readable &bull; API ready</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">unified schema</span>
+          <span class="pill">SIEM ingest</span>
+        </div>
+      </div>
+      <div class="card sm c-amber">
+        <div class="card-head">
+          <div class="card-ico">&#128187;</div>
+          <div>
+            <div class="card-title">HTML Dashboard</div>
+            <div class="card-sub">Interactive &bull; filterable &bull; shareable</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill">charts</span>
+          <span class="pill">filters</span>
+          <span class="pill">drill-down</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>Aarchai</span> &bull; Automated Recon Framework &bull; Kali Linux &bull; v3.0 &bull;
+  <span>Built for offensive security teams</span>
+</footer>
+
+<script>
+// Scroll fade-in
+const els = document.querySelectorAll('.fade-in');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 60);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+els.forEach(el => observer.observe(el));
+
+// Pill click — copy tool name
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const text = pill.textContent.trim();
+    navigator.clipboard?.writeText(text).catch(() => {});
+    const orig = pill.textContent;
+    pill.textContent = '&#10003; copied';
+    setTimeout(() => pill.textContent = orig, 900);
+  });
+});
+</script>
+</body>
+</html>
