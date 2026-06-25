@@ -6,6 +6,7 @@ Aarchai Interactive Menu — run this for a guided experience.
 import sys
 import os
 import subprocess
+import pathlib
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
