@@ -79,10 +79,8 @@ async def _subdomain_takeover(host, scan_id, jm, session):
                                         title=f"SUBDOMAIN TAKEOVER: {subdomain} → {service}",
                                         severity=Severity.critical,
                                         host=host, url=url,
-                                        description=f"Subdomain {subdomain} appears vulnerable to takeover!
-"
-                                                    f"Points to unclaimed {service} resource.
-"
+                                        description=f"Subdomain {subdomain} appears vulnerable to takeover!"
+                                                    f"Points to unclaimed {service} resource."
                                                     f"Fingerprint: '{fingerprint}'",
                                         remediation=f"Remove or update the DNS CNAME for {subdomain}. "
                                                     f"Claim the resource on {service} or delete the DNS record.",
@@ -99,8 +97,7 @@ async def _subdomain_takeover(host, scan_id, jm, session):
     # Also run nuclei takeover templates
     if tool_available("nuclei") and subdomains:
         targets_file = "/tmp/takeover_targets.txt"
-        Path(targets_file).write_text("
-".join(subdomains[:30]))
+        Path(targets_file).write_text("".join(subdomains[:30]))
         r = await run_async(
             ["nuclei", "-l", targets_file, "-t", "takeovers/", "-j", "-silent"],
             timeout=120
@@ -180,10 +177,7 @@ async def _waf_bypass(host, scan_id, jm, auth):
                 title=f"WAF Bypass: {len(waf_bypassed)} payload(s) evaded WAF",
                 severity=Severity.high,
                 host=host,
-                description="WAF bypass techniques that successfully evaded detection:
-" +
-                            "
-".join(f"{t} [{n}]: {p}" for t, n, p, u in waf_bypassed),
+                description="WAF bypass techniques that successfully evaded detection:" +"".join(f"{t} [{n}]: {p}" for t, n, p, u in waf_bypassed),
                 remediation="Update WAF rules. Test with OWASP CRS. Enable anomaly scoring mode.",
                 raw_output=str(waf_bypassed),
                 fingerprint_hash=make_hash("waf_bypass", host, str(len(waf_bypassed))),
@@ -234,10 +228,8 @@ async def _screenshot_diff(host, scan_id, jm, out_dir, session):
                             title=f"Visual change detected: {curr_img.name} (diff={diff})",
                             severity=Severity.medium if diff < 30 else Severity.high,
                             host=host,
-                            description=f"Screenshot '{curr_img.name}' changed significantly between scan #{prev_scan.id} and #{scan_id}.
-"
-                                        f"Perceptual hash difference: {diff}/64 (0=identical, 64=completely different).
-"
+                            description=f"Screenshot '{curr_img.name}' changed significantly between scan #{prev_scan.id} and #{scan_id}."
+                                        f"Perceptual hash difference: {diff}/64 (0=identical, 64=completely different)."
                                         f"This may indicate: defacement, new login page, content change, or infrastructure change.",
                             remediation="Investigate what changed on the page. If unexpected, may indicate compromise.",
                             raw_output=f"diff={diff} prev={prev_scan.id} curr={scan_id}",
@@ -300,13 +292,9 @@ async def _password_spray(host, scan_id, jm, session, auth):
             title=f"Password spray opportunity: {len(emails)} targets, {len(login_forms)} login forms",
             severity=Severity.medium,
             host=host,
-            description=f"Found {len(emails)} email addresses and {len(login_forms)} login forms.
-"
-                        f"Login endpoints: {login_forms}
-"
-                        f"Target accounts: {emails[:10]}
-
-"
+            description=f"Found {len(emails)} email addresses and {len(login_forms)} login forms."
+                        f"Login endpoints: {login_forms}"
+                        f"Target accounts: {emails[:10]}"
                         f"[Password spray was rate-limited to prevent lockout — manual validation recommended]",
             remediation="Implement account lockout policies (3-5 attempts). Enable MFA. Monitor for spray patterns.",
             raw_output=f"emails={len(emails)} forms={len(login_forms)}",

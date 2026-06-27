@@ -42,8 +42,7 @@ def _build_summary(target, scan_id, critical, high) -> str:
     for f in (critical + high)[:10]:
         sev = f.get("severity", "").upper()
         lines.append(f"[{sev}] {f.get('title', '')} — {f.get('host', '')}")
-    return "
-".join(lines)
+    return "".join(lines)
 
 
 def _send_slack(target, scan_id, critical, high, summary):

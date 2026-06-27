@@ -35,7 +35,12 @@ async def _run_async(target, scan_id, session, jm, fast, out_dir, auth):
     return findings, []
 
 
-async def _check_exposed_files(host, scan_id, jm):
+async def _check_exposed_files(
+    host,
+    scan_id,
+    jm,
+    auth=None,
+):
     """Check for exposed sensitive files: .git, .env, config.json, etc."""
     jm.log_info("Checking exposed sensitive files →")
     import aiohttp
