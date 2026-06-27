@@ -80,9 +80,7 @@ async def _asn_bgp(host, scan_id, jm):
                     title=f"ASN Discovery: {len(asn_nums)} ASN(s), {len(pfxs)} CIDR prefix(es)",
                     severity=Severity.info,
                     host=host,
-                    description=f"ASNs: {asn_nums}
-CIDR ranges: {[p.get('prefix') for p in pfxs[:10]]}
-"
+                    description=f"ASNs: {asn_nums}CIDR ranges: {[p.get('prefix') for p in pfxs[:10]]}"
                                 f"This reveals the full IP space the organisation controls.",
                     raw_output=json.dumps(pfxs[:20]),
                     fingerprint_hash=make_hash("asn", host, str(asn_nums)),
@@ -118,12 +116,9 @@ async def _email_harvest(host, scan_id, jm, fast):
             title=f"Harvested {len(emails)} employee email address(es)",
             severity=Severity.medium,
             host=host,
-            description=f"Employee emails discovered:
-" + "
-".join(list(emails)[:20]),
+            description=f"Employee emails discovered:" + "".join(list(emails)[:20]),
             remediation="Review email harvesting exposure. Consider email alias strategies for public-facing contacts.",
-            raw_output="
-".join(emails),
+            raw_output="".join(emails),
             fingerprint_hash=make_hash("emails", host, str(sorted(emails)[:5])),
         ))
         jm.log_ok(f"Emails: {len(emails)} found")
@@ -153,8 +148,7 @@ async def _breach_check(host, scan_id, jm):
                             title=f"HIBP: {host} found in {count} data breach(es)",
                             severity=Severity.high,
                             host=host,
-                            description=f"Domain {host} was found in {count} known data breach(es) on HaveIBeenPwned.
-"
+                            description=f"Domain {host} was found in {count} known data breach(es) on HaveIBeenPwned."
                                         f"Breaches: {json.dumps(data[:5])}",
                             remediation="Force password resets for all affected accounts. Implement MFA immediately.",
                             raw_output=json.dumps(data[:10]),
@@ -206,8 +200,7 @@ async def _cert_monitor(host, scan_id, jm):
                 title=f"SSL certificate expiring soon: {len(expiring_soon)} cert(s) within 30 days",
                 severity=Severity.high,
                 host=host,
-                description="
-".join(f"{name}: {d} days" for name, d in expiring_soon[:10]),
+                description="".join(f"{name}: {d} days" for name, d in expiring_soon[:10]),
                 remediation="Renew SSL certificates immediately. Set up auto-renewal with Let's Encrypt.",
                 raw_output=str(expiring_soon),
                 fingerprint_hash=make_hash("cert_expiry", host, str(len(expiring_soon))),
@@ -285,8 +278,7 @@ async def _social_media(host, scan_id, jm):
                 title=f"Social media profiles found: {', '.join(p for p,_ in found)}",
                 severity=Severity.info,
                 host=host,
-                description="
-".join(f"{p}: {u}" for p, u in found),
+                description="".join(f"{p}: {u}" for p, u in found),
                 raw_output=str(found),
                 fingerprint_hash=make_hash("social", host, str(sorted(p for p,_ in found))),
             ))
