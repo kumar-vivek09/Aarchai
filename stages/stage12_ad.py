@@ -67,14 +67,10 @@ async def _ldap_enum(host, scan_id, jm, domain, auth):
                             title=f"Anonymous LDAP enabled — {len(users)} AD users enumerated",
                             severity=Severity.critical,
                             host=host,
-                            description=f"LDAP anonymous bind allowed on {host}.
-"
-                                        f"Enumerated {len(users)} users:
-" + "
-".join(users[:20]),
+                            description=f"LDAP anonymous bind allowed on {host}."
+                                        f"Enumerated {len(users)} users:" + "".join(users[:20]),
                             remediation="Disable anonymous LDAP bind. Require authentication for all LDAP queries.",
-                            raw_output="
-".join(users),
+                            raw_output="".join(users),
                             fingerprint_hash=make_hash("ldap_anon", host, domain),
                         ))
                         for u in users[:50]:
@@ -116,12 +112,9 @@ async def _kerbrute(host, scan_id, jm, domain, fast):
             title=f"Kerberos user enumeration: {len(valid_users)} valid AD user(s) found",
             severity=Severity.high,
             host=host,
-            description=f"Valid AD usernames discovered via Kerberos pre-auth:
-" + "
-".join(valid_users[:30]),
+            description=f"Valid AD usernames discovered via Kerberos pre-auth:" + "".join(valid_users[:30]),
             remediation="Implement Kerberos pre-auth requirements for all accounts. Monitor for Kerberos enum attempts.",
-            raw_output="
-".join(valid_users),
+            raw_output="".join(valid_users),
             fingerprint_hash=make_hash("kerbrute", host, domain, str(len(valid_users))),
         ))
         jm.log_finding("high", findings[-1].title)
@@ -148,15 +141,12 @@ async def _asrep_roasting(host, scan_id, jm, domain):
                 title=f"AS-REP Roasting: {len(hashes)} crackable hash(es) captured",
                 severity=Severity.critical,
                 host=host,
-                description=f"Found {len(hashes)} account(s) with Kerberos pre-authentication disabled.
-"
-                            f"Hashes can be cracked offline with hashcat:
-"
+                description=f"Found {len(hashes)} account(s) with Kerberos pre-authentication disabled."
+                            f"Hashes can be cracked offline with hashcat:"
                             f"hashcat -m 18200 hashes.txt rockyou.txt",
                 remediation="Enable Kerberos pre-authentication for all accounts. "
                             "Immediately reset passwords of affected accounts.",
-                raw_output="
-".join(hashes[:5]),
+                raw_output="".join(hashes[:5]),
                 fingerprint_hash=make_hash("asrep", host, domain, str(len(hashes))),
             ))
             jm.log_finding("critical", findings[-1].title)
@@ -179,8 +169,7 @@ async def _smb_enum(host, scan_id, jm, auth):
             title=f"SMB Signing NOT Required on {host} — NTLM relay attack possible",
             severity=Severity.high,
             host=host, port=445,
-            description="SMB message signing is not required. This allows NTLM relay attacks.
-"
+            description="SMB message signing is not required. This allows NTLM relay attacks."
                         "An attacker can relay authentication to gain access with victim's privileges.",
             remediation="Enable and require SMB message signing via GPO: "
                         "'Microsoft network server: Digitally sign communications (always)'",

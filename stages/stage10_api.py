@@ -231,10 +231,8 @@ async def _cors_test(host, base_url, scan_id, jm, auth):
                                 title=f"CORS Misconfiguration: {acao} (credentials: {acac})",
                                 severity=sev,
                                 host=host, url=base_url,
-                                description=f"Origin '{origin}' is reflected in ACAO header: '{acao}'.
-"
-                                            f"Credentials allowed: {acac}
-"
+                                description=f"Origin '{origin}' is reflected in ACAO header: '{acao}'."
+                                            f"Credentials allowed: {acac}"
                                             f"Attackers can perform cross-origin requests with user credentials.",
                                 remediation="Use strict CORS allowlists. Never use wildcard '*' with credentials. Validate Origin headers server-side.",
                                 raw_output=f"ACAO: {acao}, ACAC: {acac}",
@@ -274,8 +272,7 @@ async def _arjun_scan(host, base_url, scan_id, jm, auth):
                         title=f"Hidden API parameters discovered: {', '.join(params[:5])}",
                         severity=Severity.medium,
                         host=host, url=url_result.get("url", base_url),
-                        description=f"arjun discovered {len(params)} hidden parameter(s):
-{', '.join(params)}",
+                        description=f"arjun discovered {len(params)} hidden parameter(s):{', '.join(params)}",
                         remediation="Review hidden parameters for injection vulnerabilities. Remove undocumented parameters.",
                         raw_output=str(params),
                         fingerprint_hash=make_hash("arjun", host, str(sorted(params)[:3])),
@@ -310,8 +307,7 @@ async def _kiterunner_scan(host, base_url, scan_id, jm, auth):
                     title=f"kiterunner: {routes} hidden API route(s) discovered",
                     severity=Severity.medium,
                     host=host, url=base_url,
-                    description=f"kiterunner discovered {routes} undocumented API endpoints.
-"
+                    description=f"kiterunner discovered {routes} undocumented API endpoints."
                                 f"Routes: {[d.get('path') for d in data[:10]]}",
                     remediation="Audit discovered routes. Remove or protect undocumented endpoints.",
                     raw_output=str(data[:20]),

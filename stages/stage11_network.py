@@ -67,9 +67,7 @@ async def _arp_scan(host, scan_id, jm):
             title=f"ARP scan: {len(hosts_found)} live host(s) on local network",
             severity=Severity.info,
             host=host,
-            description="Live hosts:
-" + "
-".join(f"{h['ip']} ({h['mac']}) — {h['vendor']}" for h in hosts_found[:30]),
+            description="Live hosts:" + "".join(f"{h['ip']} ({h['mac']}) — {h['vendor']}" for h in hosts_found[:30]),
             raw_output=r.stdout[:3000],
             fingerprint_hash=make_hash("arp_scan", host, str(len(hosts_found))),
         ))
@@ -101,9 +99,7 @@ async def _traceroute(host, scan_id, jm):
             title=f"Network path to {host}: {len(hops)} hops",
             severity=Severity.info,
             host=host,
-            description="Network routing path:
-" + "
-".join(f"Hop {h['hop']}: {h['ip']}" for h in hops),
+            description="Network routing path:" + "".join(f"Hop {h['hop']}: {h['ip']}" for h in hops),
             raw_output=r.stdout[:2000],
             fingerprint_hash=make_hash("traceroute", host),
         ))
