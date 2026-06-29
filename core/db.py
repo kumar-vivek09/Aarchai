@@ -102,6 +102,21 @@ class SuppressionRule(Base):
     reason       = Column(String(256))
     created_at   = Column(DateTime, default=datetime.utcnow)
 
+class AttackPath(Base):
+    __tablename__ = "attack_paths"
+    id          = Column(Integer, primary_key=True)
+    scan_id     = Column(Integer, ForeignKey("scans.id"))
+    path_id     = Column(String(64))  # String identifier for the chain
+    entry_node  = Column(String(256)) # Where the attack starts
+    target_node = Column(String(256)) # What the attack hits
+    likelihood  = Column(String(64))  # Probability of success
+    severity    = Column(String(32))  # Overall impact
+    techniques  = Column(JSON, default=list) # MITRE tactics/techniques
+    chain_json  = Column(JSON)        # Raw chain data
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    
+    scan = relationship("Scan")
+
 def init_db():
     Base.metadata.create_all(engine)
 
