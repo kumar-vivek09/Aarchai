@@ -131,7 +131,7 @@ def handle_1():
     exclude = ask_optional("Exclude patterns (comma-separated, optional)", "")
     auth    = ask_optional("Auth profile name (optional)", "")
     fast    = Confirm.ask("  [dim]Fast mode?[/]", default=False)
-    args = ["scan", "--target", target, "--stages", "0,1,2,3,3b,4,4b,5,6,7,8,9,10,11"]
+    args = ["scan", "--target", target, "--stages", "all"]
     if exclude:
         for ex in exclude.split(","):
             args += ["--exclude", ex.strip()]

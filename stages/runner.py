@@ -18,14 +18,15 @@ STAGE_MAP = {
     "4":  "stages.stage4_vulns",
     "4b": "stages.stage4b_secrets",
     "5":  "stages.stage5_intel",
-    "6":  "stages.stage6_report",
-    "7":  "stages.stage7_attacker",
     "8":  "stages.stage8_osint",
     "9":  "stages.stage9_cloud",
     "10": "stages.stage10_api",
     "11": "stages.stage11_network",
     "12": "stages.stage12_ad",
     "13": "stages.stage13_advanced",
+    "14": "stages.stage14_correlation",
+    "7":  "stages.stage7_attacker",
+    "6":  "stages.stage6_report",
     # Aliases
     "passive":     "stages.stage1_passive",
     "active":      "stages.stage2_active",
@@ -34,25 +35,26 @@ STAGE_MAP = {
     "vulns":       "stages.stage4_vulns",
     "secrets":     "stages.stage4b_secrets",
     "intel":       "stages.stage5_intel",
-    "report":      "stages.stage6_report",
-    "attacker":    "stages.stage7_attacker",
     "osint":       "stages.stage8_osint",
     "cloud":       "stages.stage9_cloud",
     "api":         "stages.stage10_api",
     "network":     "stages.stage11_network",
     "ad":          "stages.stage12_ad",
     "advanced":    "stages.stage13_advanced",
+    "correlation": "stages.stage14_correlation",
+    "attacker":    "stages.stage7_attacker",
+    "report":      "stages.stage6_report",
 }
 
-ALL_STAGES = ["0","1","2","3","3b","4","4b","5","6","7","8","9","10","11","12","13"]
+ALL_STAGES = ["0","1","2","3","3b","4","4b","5","8","9","10","11","12","13","14","7","6"]
 
 STAGE_LABELS = {
     "0": "Scope Validation", "1": "Passive Recon", "2": "Active Recon",
     "3": "Web Scan", "3b": "Fingerprinting", "4": "Vulnerability Scan",
-    "4b": "Secret Detection", "5": "Intelligence", "6": "Report Generation",
-    "7": "Red Team AI", "8": "OSINT", "9": "Cloud Discovery",
-    "10": "API Security", "11": "Network Topology", "12": "AD/Kerberos",
-    "13": "Advanced Tests",
+    "4b": "Secret Detection", "5": "Intelligence", "8": "OSINT", 
+    "9": "Cloud Discovery", "10": "API Security", "11": "Network Topology", 
+    "12": "AD/Kerberos", "13": "Advanced Tests", "14": "Correlation Engine",
+    "7": "Red Team AI", "6": "Report Generation"
 }
 
 
@@ -133,31 +135,7 @@ def run_pipeline(target, scan_id, session, jm, stages_arg, output_dir,
     save_snapshot(session, scan_id, all_findings)
     compute_diff_for_scan(session, scan_id, jm)
 
-    # Exploit chain + threat model (auto if stage 6 ran)
-    if "6" in stages:
-        _generate_outputs(scan_id, target, all_findings, all_assets, session, out_path, jm)
-        # Auto exploit chain
-        try:
-            from utils.exploit_chain import build_exploit_chain
-            db_f = session.query(DBFinding).filter(DBFinding.scan_id == scan_id).all()
-            from core.db import Asset
-            db_a = session.query(Asset).filter(Asset.scan_id == scan_id).all()
-            build_exploit_chain(db_f, db_a, target, scan_id, out_path)
-            jm.log_ok("Exploit chain analysis generated")
-        except Exception as e:
-            jm.log_warn(f"Exploit chain: {e}")
-        # Auto threat model
-        try:
-            from utils.threat_model import generate_stride_model
-            from core.db import Asset
-            db_f = session.query(DBFinding).filter(DBFinding.scan_id == scan_id).all()
-            db_a = session.query(Asset).filter(Asset.scan_id == scan_id).all()
-            generate_stride_model(db_f, db_a, target, scan_id, out_path)
-            jm.log_ok("STRIDE threat model generated")
-        except Exception as e:
-            jm.log_warn(f"Threat model: {e}")
-    else:
-        _generate_outputs(scan_id, target, all_findings, all_assets, session, out_path, jm)
+    _generate_outputs(scan_id, target, all_findings, all_assets, session, out_path, jm)
 
     jm.update_status("done")
     console.print(Rule("[bold green]Scan Complete[/]", style="green"))
