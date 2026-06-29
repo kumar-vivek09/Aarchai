@@ -65,13 +65,21 @@ def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None, scope
             bonus += 15
             reasons.append("Public Exploit (+15)")
 
-        if f.cvss_score and float(f.cvss_score) >= 7.0:
-             bonus += 10
-             reasons.append(f"CVSS {f.cvss_score} (+10)")
+        if f.cvss_score:
+             try:
+                 if float(f.cvss_score) >= 7.0:
+                     bonus += 10
+                     reasons.append(f"CVSS {f.cvss_score} (+10)")
+             except (ValueError, TypeError):
+                 pass
              
-        if f.epss_score and float(f.epss_score) >= 0.5:
-             bonus += 15
-             reasons.append(f"EPSS {f.epss_score} (+15)")
+        if f.epss_score:
+             try:
+                 if float(f.epss_score) >= 0.5:
+                     bonus += 15
+                     reasons.append(f"EPSS {f.epss_score} (+15)")
+             except (ValueError, TypeError):
+                 pass
              
         # Merge the detected_by list into the raw output so it persists in the report
         if hasattr(f, "_detected_by") and len(f._detected_by) > 1:
