@@ -74,6 +74,7 @@ class Finding(Base):
     references       = Column(JSON, default=list)
     # ── New columns ───────────────────────────────────────────
     confidence_score = Column(Integer, default=50)         # 0-100
+    correlated_confidence = Column(Integer, nullable=True) # 0-100, set by Stage 14
     triage_status    = Column(String(32), default="unreviewed")  # unreviewed|confirmed|false_positive|accepted_risk
     is_suppressed    = Column(Boolean, default=False)
     exploit_available = Column(Boolean, default=False)     # has public PoC/exploit

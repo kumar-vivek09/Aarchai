@@ -48,7 +48,7 @@ def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None, scope
              bonus += 15
 
         correlated_conf = min(100, base_confidence + bonus)
-        f.confidence_score = correlated_conf  # Update DB object with new correlated confidence
+        f.correlated_confidence = correlated_conf  # Update DB object with new correlated confidence
         f._intel = intel # Attach for graph
 
     session.commit()
