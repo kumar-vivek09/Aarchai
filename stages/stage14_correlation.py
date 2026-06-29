@@ -54,6 +54,9 @@ def run(target, scan_id, session, jm, fast=False, out_dir=None, auth=None, scope
     session.commit()
 
     # 3. Asset Graph & Relationship Builder
+    # ARCHITECTURE NOTE: The database remains the primary source of truth.
+    # NetworkX is used entirely in-memory here to compute relationships and 
+    # export the graph, but it is NOT used as primary storage.
     jm.log_info("Building Asset Graph...")
     G = nx.DiGraph()
     target_node = f"target_{target.value}"
