@@ -80,11 +80,7 @@ def _build_attacker_payload(findings, assets, target) -> dict:
 
 def _run_attacker_llm(payload: dict, jm) -> str:
     prompt = _build_attacker_prompt(payload)
-    if LLM_PROVIDER == "ollama":
-        return _ollama(prompt, jm)
-    elif LLM_PROVIDER == "openai" and OPENAI_API_KEY:
-        return _openai(prompt, jm)
-    return _stub(payload)
+    return _dispatch(prompt, payload, jm)
 
 
 def _build_attacker_prompt(payload: dict) -> str:
@@ -128,19 +124,46 @@ Do NOT be generic. Every recommendation must be grounded in the actual findings 
 """
 
 
-def _stub(payload: dict) -> str:
+def _dispatch(prompt: str, payload: dict, jm) -> str:
+    handler = PROVIDERS.get(LLM_PROVIDER, _stub)
+    return handler(prompt, payload, jm)
+
+
+def _stub(prompt: str, payload: dict, jm) -> str:
+    jm.log_info("LLM stub — set LLM_PROVIDER=ollama, openai, or google in .env")
+    attack_surface = payload.get('attack_surface', {})
+    initial = payload.get('initial_access_vectors', [])
+    exploitable = payload.get('confirmed_exploitable', [])
     return (
         "== ATTACKER PERSPECTIVE (stub — configure LLM_PROVIDER in .env) ==\n\n"
-        f"Attack surface: {payload['attack_surface']}\n"
-        f"Initial access vectors: {len(payload['initial_access_vectors'])}\n"
-        f"Confirmed exploitable: {len(payload['confirmed_exploitable'])}\n\n"
-        "[Set LLM_PROVIDER=ollama and run Ollama locally for AI red team analysis]"
+        f"Attack surface: {attack_surface}\n"
+        f"Initial access vectors: {len(initial)}\n"
+        f"Confirmed exploitable: {len(exploitable)}\n\n"
+        "[Configure LLM_PROVIDER in .env to get AI red team analysis]"
     )
 
 
-def _ollama(prompt: str, jm) -> str:
+def _google(prompt: str, payload: dict, jm) -> str:
+    from config import GOOGLE_API_KEY, GOOGLE_MODEL
+    jm.log_info(f"Google Gemini ({GOOGLE_MODEL}) generating narrative...")
+    try:
+        from google import genai
+        if not GOOGLE_API_KEY:
+            raise ValueError("GOOGLE_API_KEY not set")
+        client = genai.Client(api_key=GOOGLE_API_KEY)
+        response = client.models.generate_content(
+            model=GOOGLE_MODEL,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        jm.log_warn(f"Google Gemini error: {e}. Falling back to stub provider.")
+        return _stub(prompt, payload, jm)
+
+
+def _ollama(prompt: str, payload: dict, jm) -> str:
     import requests
-    jm.log_info(f"Red team analysis via Ollama ({OLLAMA_MODEL})...")
+    jm.log_info(f"Ollama ({OLLAMA_MODEL}) generating narrative...")
     try:
         resp = requests.post(
             f"{OLLAMA_URL}/api/generate",
@@ -150,14 +173,16 @@ def _ollama(prompt: str, jm) -> str:
         resp.raise_for_status()
         return resp.json().get("response", "")
     except Exception as e:
-        jm.log_warn(f"Ollama: {e}")
-        return _stub({})
+        jm.log_warn(f"Ollama error: {e}. Falling back to stub provider.")
+        return _stub(prompt, payload, jm)
 
 
-def _openai(prompt: str, jm) -> str:
+def _openai(prompt: str, payload: dict, jm) -> str:
     import requests
-    jm.log_info(f"Red team analysis via OpenAI ({OPENAI_MODEL})...")
+    jm.log_info(f"OpenAI ({OPENAI_MODEL}) generating narrative...")
     try:
+        if not OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY not set")
         resp = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
@@ -175,5 +200,13 @@ def _openai(prompt: str, jm) -> str:
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        jm.log_warn(f"OpenAI: {e}")
-        return _stub({})
+        jm.log_warn(f"OpenAI error: {e}. Falling back to stub provider.")
+        return _stub(prompt, payload, jm)
+
+
+PROVIDERS = {
+    "google": _google,
+    "ollama": _ollama,
+    "openai": _openai,
+    "stub": _stub,
+}

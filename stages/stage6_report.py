@@ -169,38 +169,29 @@ Rules:
 
 
 def _dispatch(prompt: str, jm) -> str:
-    if LLM_PROVIDER == "google" and GOOGLE_API_KEY:
-        return _google(prompt, jm)
-
-    elif LLM_PROVIDER == "ollama":
-        return _ollama(prompt, jm)
-
-    elif LLM_PROVIDER == "openai" and OPENAI_API_KEY:
-        return _openai(prompt, jm)
-
-    return _stub(prompt, jm)
+    handler = PROVIDERS.get(LLM_PROVIDER, _stub)
+    return handler(prompt, jm)
 
 
 def _stub(prompt: str, jm) -> str:
     jm.log_info("LLM stub — set LLM_PROVIDER=ollama or openai in .env")
-    return "[LLM stub — configure LLM_PROVIDER in .env to get AI narratives]" + prompt[:500]
+    return "[LLM stub — configure LLM_PROVIDER in .env to get AI narratives]\n" + prompt[:500]
 
 
 def _google(prompt: str, jm) -> str:
     jm.log_info(f"Google Gemini ({GOOGLE_MODEL}) generating narrative...")
     try:
         from google import genai
+        if not GOOGLE_API_KEY:
+             raise ValueError("GOOGLE_API_KEY not set")
         client = genai.Client(api_key=GOOGLE_API_KEY)
         response = client.models.generate_content(
             model=GOOGLE_MODEL,
             contents=prompt,
         )
         return response.text
-    except ImportError:
-        jm.log_warn("Google Gemini SDK not installed. Run: pip install google-genai")
-        return _stub(prompt, jm)
     except Exception as e:
-        jm.log_warn(f"Google Gemini error: {e}")
+        jm.log_warn(f"Google Gemini error: {e}. Falling back to stub provider.")
         return _stub(prompt, jm)
 
 
@@ -216,7 +207,7 @@ def _ollama(prompt: str, jm) -> str:
         resp.raise_for_status()
         return resp.json().get("response", "")
     except Exception as e:
-        jm.log_warn(f"Ollama error: {e}")
+        jm.log_warn(f"Ollama error: {e}. Falling back to stub provider.")
         return _stub(prompt, jm)
 
 
@@ -224,6 +215,8 @@ def _openai(prompt: str, jm) -> str:
     import requests as req
     jm.log_info(f"OpenAI ({OPENAI_MODEL}) generating narrative...")
     try:
+        if not OPENAI_API_KEY:
+             raise ValueError("OPENAI_API_KEY not set")
         resp = req.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
@@ -238,5 +231,13 @@ def _openai(prompt: str, jm) -> str:
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        jm.log_warn(f"OpenAI error: {e}")
+        jm.log_warn(f"OpenAI error: {e}. Falling back to stub provider.")
         return _stub(prompt, jm)
+
+
+PROVIDERS = {
+    "google": _google,
+    "ollama": _ollama,
+    "openai": _openai,
+    "stub": _stub,
+}
