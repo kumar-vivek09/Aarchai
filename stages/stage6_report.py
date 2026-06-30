@@ -1,7 +1,7 @@
 """Stage 6 — AI Report Generation with severity-first, chunked LLM calls."""
 from __future__ import annotations
 import json
-from config import LLM_PROVIDER, OLLAMA_URL, OLLAMA_MODEL, OPENAI_API_KEY, OPENAI_MODEL
+from config import LLM_PROVIDER, OLLAMA_URL, OLLAMA_MODEL, OPENAI_API_KEY, OPENAI_MODEL, GOOGLE_API_KEY
 
 # Token budget: never cut critical/high; summarise medium/low/info
 MAX_TOKENS_PER_CALL = 6000   # conservative for free-tier / small models
@@ -169,16 +169,39 @@ Rules:
 
 
 def _dispatch(prompt: str, jm) -> str:
-    if LLM_PROVIDER == "ollama":
+    if LLM_PROVIDER == "google" and GOOGLE_API_KEY:
+        return _google(prompt, jm)
+
+    elif LLM_PROVIDER == "ollama":
         return _ollama(prompt, jm)
+
     elif LLM_PROVIDER == "openai" and OPENAI_API_KEY:
         return _openai(prompt, jm)
+
     return _stub(prompt, jm)
 
 
 def _stub(prompt: str, jm) -> str:
     jm.log_info("LLM stub — set LLM_PROVIDER=ollama or openai in .env")
     return "[LLM stub — configure LLM_PROVIDER in .env to get AI narratives]" + prompt[:500]
+
+
+def _google(prompt: str, jm) -> str:
+    jm.log_info(f"Google Gemini ({GOOGLE_MODEL}) generating narrative...")
+    try:
+        from google import genai
+        client = genai.Client(api_key=GOOGLE_API_KEY)
+        response = client.models.generate_content(
+            model=GOOGLE_MODEL,
+            contents=prompt,
+        )
+        return response.text
+    except ImportError:
+        jm.log_warn("Google Gemini SDK not installed. Run: pip install google-genai")
+        return _stub(prompt, jm)
+    except Exception as e:
+        jm.log_warn(f"Google Gemini error: {e}")
+        return _stub(prompt, jm)
 
 
 def _ollama(prompt: str, jm) -> str:

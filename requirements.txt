@@ -24,3 +24,4 @@ networkx>=3.3
 imagehash>=4.3
 Pillow>=10.3
 dnspython>=2.6
+google-genai>=0.2.0

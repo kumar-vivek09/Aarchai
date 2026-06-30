@@ -22,6 +22,8 @@ OLLAMA_URL     = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL   = os.getenv("OLLAMA_MODEL", "llama3")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL   = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+GOOGLE_MODEL   = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
 
 # Paths & timeouts
 TOOL_TIMEOUT = int(os.getenv("TOOL_TIMEOUT", "300"))
