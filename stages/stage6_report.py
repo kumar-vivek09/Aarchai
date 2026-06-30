@@ -1,7 +1,7 @@
 """Stage 6 — AI Report Generation with severity-first, chunked LLM calls."""
 from __future__ import annotations
 import json
-from config import LLM_PROVIDER, OLLAMA_URL, OLLAMA_MODEL, OPENAI_API_KEY, OPENAI_MODEL, GOOGLE_API_KEY
+from config import LLM_PROVIDER, OLLAMA_URL, OLLAMA_MODEL, OPENAI_API_KEY, OPENAI_MODEL, GOOGLE_API_KEY, GOOGLE_MODEL
 
 # Token budget: never cut critical/high; summarise medium/low/info
 MAX_TOKENS_PER_CALL = 6000   # conservative for free-tier / small models
@@ -168,13 +168,14 @@ Rules:
 """
 
 
+
 def _dispatch(prompt: str, jm) -> str:
-    handler = PROVIDERS.get(LLM_PROVIDER, _stub)
+    handler = PROVIDERS.get((LLM_PROVIDER or "").lower(), _stub)
     return handler(prompt, jm)
 
 
 def _stub(prompt: str, jm) -> str:
-    jm.log_info("LLM stub — set LLM_PROVIDER=ollama or openai in .env")
+    jm.log_info("LLM stub — set LLM_PROVIDER=google, ollama, or openai in .env")
     return "[LLM stub — configure LLM_PROVIDER in .env to get AI narratives]\n" + prompt[:500]
 
 
@@ -183,7 +184,7 @@ def _google(prompt: str, jm) -> str:
     try:
         from google import genai
         if not GOOGLE_API_KEY:
-             raise ValueError("GOOGLE_API_KEY not set")
+            raise ValueError("GOOGLE_API_KEY missing")
         client = genai.Client(api_key=GOOGLE_API_KEY)
         response = client.models.generate_content(
             model=GOOGLE_MODEL,
@@ -216,7 +217,7 @@ def _openai(prompt: str, jm) -> str:
     jm.log_info(f"OpenAI ({OPENAI_MODEL}) generating narrative...")
     try:
         if not OPENAI_API_KEY:
-             raise ValueError("OPENAI_API_KEY not set")
+            raise ValueError("OPENAI_API_KEY missing")
         resp = req.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
